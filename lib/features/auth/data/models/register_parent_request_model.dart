@@ -17,12 +17,12 @@ class RegisterParentRequestModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'firstName': firstName.trim(),
-      'lastName': lastName.trim(),
+      'prenom': firstName.trim(),
+      'nom': lastName.trim(),
       'email': email.trim(),
-      'phone': phone.trim(),
-      'password': password,
-      'role': 'parent',
+      'telephone': phone.trim(),
+      'mot_de_passe': password,
+      'role': 'PARENT',
     };
   }
 }

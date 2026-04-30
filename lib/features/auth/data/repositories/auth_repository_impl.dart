@@ -45,20 +45,23 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     final response = await remoteDatasource.login(
-      LoginRequestModel(
-        email: email,
-        password: password,
-      ),
+      LoginRequestModel(email: email, password: password),
     );
 
+    // Si l'utilisateur connecté est un parent,
+    // on force l'envoi d'un OTP avant de créer la session.
+    if (response.user?.role.isParent == true) {
+      await remoteDatasource.sendOtp(email);
+      return null;
+    }
+
+    // Si le backend indique directement qu'un OTP est requis.
     if (response.requiresOtp) {
       return null;
     }
 
     if (response.accessToken == null || response.user == null) {
-      throw Exception(
-        response.message ?? 'Réponse de connexion invalide.',
-      );
+      throw Exception(response.message ?? 'Réponse de connexion invalide.');
     }
 
     final session = SessionModel(
@@ -73,15 +76,17 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> sendOtp({required String email}) {
+    return remoteDatasource.sendOtp(email);
+  }
+
+  @override
   Future<SessionEntity> verifyOtp({
     required String email,
     required String otp,
   }) async {
     final response = await remoteDatasource.verifyOtp(
-      VerifyOtpRequestModel(
-        email: email,
-        otp: otp,
-      ),
+      VerifyOtpRequestModel(email: email, otp: otp),
     );
 
     final session = SessionModel(

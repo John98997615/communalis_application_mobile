@@ -15,6 +15,10 @@ abstract class AuthRepository {
     required String password,
   });
 
+  Future<void> sendOtp({
+    required String email,
+  });
+
   Future<SessionEntity> verifyOtp({
     required String email,
     required String otp,

@@ -42,7 +42,7 @@ class ApiClient {
   /// Android Emulator : http://10.0.2.2:3000/api
   /// Chrome / Web local : http://localhost:3000/api
   /// Téléphone physique : http://IP_DE_TON_PC:3000/api
-  static const String baseUrl = 'http://localhost:3000/api';
+  static const String baseUrl = 'http://localhost:3001/api';
 
   Dio get dio => _dio;
 

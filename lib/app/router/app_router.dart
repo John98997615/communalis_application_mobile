@@ -7,6 +7,8 @@ import '../../features/auth/presentation/screens/otp_screen.dart';
 import '../../features/auth/presentation/screens/register_parent_screen.dart';
 import '../../features/auth/presentation/screens/role_redirect_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/liaisons/presentation/screens/children_gallery_screen.dart';
+import '../../features/liaisons/presentation/screens/parent_waiting_validation_screen.dart';
 import 'route_names.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -47,6 +49,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           message: 'Espace Parent',
         ),
       ),
+      GoRoute(
+        path: RouteNames.parentWaitingValidation,
+        builder: (context, state) => const ParentWaitingValidationScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.childrenGallery,
+        builder: (context, state) => const ChildrenGalleryScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.parentWaitingValidation,
+        builder: (context, state) => const ParentWaitingValidationScreen(),
+      ),
     ],
   );
 });
@@ -55,23 +69,13 @@ class _TempScreen extends StatelessWidget {
   final String title;
   final String message;
 
-  const _TempScreen({
-    required this.title,
-    required this.message,
-  });
+  const _TempScreen({required this.title, required this.message});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: Center(
-        child: Text(
-          message,
-          style: const TextStyle(fontSize: 22),
-        ),
-      ),
+      appBar: AppBar(title: Text(title)),
+      body: Center(child: Text(message, style: const TextStyle(fontSize: 22))),
     );
   }
 }

@@ -10,7 +10,7 @@ class VerifyOtpRequestModel {
   Map<String, dynamic> toJson() {
     return {
       'email': email.trim(),
-      'otp': otp.trim(),
+      'code': otp.trim(),
     };
   }
 }

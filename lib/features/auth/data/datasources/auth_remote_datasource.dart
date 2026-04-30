@@ -10,9 +10,7 @@ import '../models/verify_otp_response_model.dart';
 class AuthRemoteDatasource {
   final ApiClient apiClient;
 
-  AuthRemoteDatasource({
-    required this.apiClient,
-  });
+  AuthRemoteDatasource({required this.apiClient});
 
   Future<RegisterParentResponseModel> registerParent(
     RegisterParentRequestModel request,
@@ -24,6 +22,13 @@ class AuthRemoteDatasource {
 
     return RegisterParentResponseModel.fromJson(
       Map<String, dynamic>.from(response.data),
+    );
+  }
+
+  Future<void> sendOtp(String email) async {
+    await apiClient.post(
+      ApiEndpoints.authSendOtp,
+      data: {'email': email.trim()},
     );
   }
 

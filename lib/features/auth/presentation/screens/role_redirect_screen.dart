@@ -39,7 +39,7 @@ class _RoleRedirectScreenState extends ConsumerState<RoleRedirectScreen> {
     }
 
     if (authState.role == UserRole.parent) {
-      context.go(RouteNames.parentDashboard);
+      context.go(RouteNames.childrenGallery);
       return;
     }
 

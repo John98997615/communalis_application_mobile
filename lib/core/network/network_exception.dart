@@ -22,31 +22,25 @@ class TimeoutNetworkException extends NetworkException {
 }
 
 class BadRequestException extends NetworkException {
-  const BadRequestException(String message, {int? statusCode})
-      : super(message, statusCode: statusCode);
+  const BadRequestException(super.message, {super.statusCode});
 }
 
 class UnauthorizedException extends NetworkException {
-  const UnauthorizedException(String message, {int? statusCode})
-      : super(message, statusCode: statusCode);
+  const UnauthorizedException(super.message, {super.statusCode});
 }
 
 class ForbiddenException extends NetworkException {
-  const ForbiddenException(String message, {int? statusCode})
-      : super(message, statusCode: statusCode);
+  const ForbiddenException(super.message, {super.statusCode});
 }
 
 class NotFoundException extends NetworkException {
-  const NotFoundException(String message, {int? statusCode})
-      : super(message, statusCode: statusCode);
+  const NotFoundException(super.message, {super.statusCode});
 }
 
 class ServerException extends NetworkException {
-  const ServerException(String message, {int? statusCode})
-      : super(message, statusCode: statusCode);
+  const ServerException(super.message, {super.statusCode});
 }
 
 class UnknownNetworkException extends NetworkException {
-  const UnknownNetworkException(String message, {int? statusCode})
-      : super(message, statusCode: statusCode);
+  const UnknownNetworkException(super.message, {super.statusCode});
 }
