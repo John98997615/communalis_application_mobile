@@ -7,6 +7,7 @@ import '../../data/repositories/liaisons_repository_impl.dart';
 import '../../domain/repositories/liaisons_repository.dart';
 import '../../domain/usecases/get_children_gallery_usecase.dart';
 import '../../domain/usecases/request_liaison_usecase.dart';
+import '../../domain/usecases/get_my_liaison_status_usecase.dart';
 import 'child_gallery_state.dart';
 
 final liaisonsRemoteDatasourceProvider =
@@ -32,6 +33,13 @@ final getChildrenGalleryUsecaseProvider =
 final requestLiaisonUsecaseProvider =
     Provider<RequestLiaisonUsecase>((ref) {
   return RequestLiaisonUsecase(
+    ref.watch(liaisonsRepositoryProvider),
+  );
+});
+
+final getMyLiaisonStatusUsecaseProvider =
+    Provider<GetMyLiaisonStatusUsecase>((ref) {
+  return GetMyLiaisonStatusUsecase(
     ref.watch(liaisonsRepositoryProvider),
   );
 });

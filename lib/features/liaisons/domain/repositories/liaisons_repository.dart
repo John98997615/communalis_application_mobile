@@ -1,3 +1,4 @@
+import '../../../../../shared/enums/liaison_status.dart';
 import '../entities/child_gallery_item_entity.dart';
 
 abstract class LiaisonsRepository {
@@ -9,5 +10,5 @@ abstract class LiaisonsRepository {
     required int childId,
   });
 
-  Future<String?> getMyLiaisonStatus();
+  Future<LiaisonStatus> getMyLiaisonStatus();
 }

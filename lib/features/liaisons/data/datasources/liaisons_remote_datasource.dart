@@ -1,3 +1,4 @@
+import '../../../../../shared/enums/liaison_status.dart';
 import 'package:communalis_application_mobile/app/config/api_endpoints.dart';
 import 'package:communalis_application_mobile/core/network/api_client.dart';
 
@@ -6,9 +7,7 @@ import '../models/child_gallery_item_model.dart';
 class LiaisonsRemoteDatasource {
   final ApiClient apiClient;
 
-  LiaisonsRemoteDatasource({
-    required this.apiClient,
-  });
+  LiaisonsRemoteDatasource({required this.apiClient});
 
   Future<List<ChildGalleryItemModel>> getChildrenGallery({
     String? search,
@@ -16,8 +15,7 @@ class LiaisonsRemoteDatasource {
     final response = await apiClient.get(
       ApiEndpoints.childrenGallery,
       queryParameters: {
-        if (search != null && search.trim().isNotEmpty)
-          'search': search.trim(),
+        if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
       },
     );
 
@@ -31,14 +29,10 @@ class LiaisonsRemoteDatasource {
         .toList();
   }
 
-  Future<String> requestLiaison({
-    required int childId,
-  }) async {
+  Future<String> requestLiaison({required int childId}) async {
     final response = await apiClient.post(
       ApiEndpoints.requestLiaison,
-      data: {
-        'id_enfant': childId,
-      },
+      data: {'id_enfant': childId},
     );
 
     final data = response.data;
@@ -53,22 +47,22 @@ class LiaisonsRemoteDatasource {
     return 'Demande envoyée avec succès.';
   }
 
-  Future<String?> getMyLiaisonStatus() async {
-    final response = await apiClient.get(
-      ApiEndpoints.myLiaisonStatus,
-    );
+  Future<LiaisonStatus> getMyLiaisonStatus() async {
+    final response = await apiClient.get(ApiEndpoints.myLiaisonStatus);
 
     final data = response.data;
 
     if (data is Map<String, dynamic>) {
-      return (data['status'] ??
-              data['statut'] ??
-              data['data']?['status'] ??
-              data['data']?['statut'])
-          ?.toString();
+      final rawStatus =
+          data['status'] ??
+          data['statut'] ??
+          data['data']?['status'] ??
+          data['data']?['statut'];
+
+      return LiaisonStatus.fromString(rawStatus?.toString());
     }
 
-    return null;
+    return LiaisonStatus.unknown;
   }
 
   List<dynamic> _extractList(dynamic rawData) {

@@ -1,9 +1,12 @@
+import 'package:communalis_application_mobile/features/liaisons/presentation/providers/child_gallery_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../app/router/route_names.dart';
+import '../../../../../shared/enums/liaison_status.dart';
 import '../../../../../shared/enums/user_role.dart';
+// import '../../../../liaisons/presentation/providers/child_gallery_provider.dart';
 import '../providers/auth_provider.dart';
 
 class RoleRedirectScreen extends ConsumerStatefulWidget {
@@ -39,11 +42,43 @@ class _RoleRedirectScreenState extends ConsumerState<RoleRedirectScreen> {
     }
 
     if (authState.role == UserRole.parent) {
-      context.go(RouteNames.childrenGallery);
+      await _redirectParent();
       return;
     }
 
     context.go(RouteNames.login);
+  }
+
+  Future<void> _redirectParent() async {
+    try {
+      final status = await ref.read(
+        getMyLiaisonStatusUsecaseProvider,
+      )();
+
+      if (!mounted) return;
+
+      switch (status) {
+        case LiaisonStatus.approved:
+          context.go(RouteNames.parentDashboard);
+          break;
+
+        case LiaisonStatus.pending:
+          context.go(RouteNames.parentWaitingValidation);
+          break;
+
+        case LiaisonStatus.none:
+        case LiaisonStatus.rejected:
+        case LiaisonStatus.unknown:
+          context.go(RouteNames.childrenGallery);
+          break;
+      }
+    } catch (_) {
+      if (!mounted) return;
+
+      // Sécurité : si le statut est impossible à récupérer,
+      // on envoie le parent vers le trombinoscope.
+      context.go(RouteNames.childrenGallery);
+    }
   }
 
   @override

@@ -11,9 +11,7 @@ class ParentWaitingValidationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Validation en attente'),
-      ),
+      appBar: AppBar(title: const Text('Validation en attente')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(22),
@@ -28,19 +26,13 @@ class ParentWaitingValidationScreen extends StatelessWidget {
               const SizedBox(height: 20),
               const Text(
                 'Demande en attente',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               const Text(
                 'Votre demande a été envoyée',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               const Text(
@@ -57,9 +49,9 @@ class ParentWaitingValidationScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               AppButton(
-                text: 'Actualiser plus tard',
+                text: 'Vérifier maintenant',
                 onPressed: () {
-                  context.go(RouteNames.login);
+                  context.go(RouteNames.roleRedirect);
                 },
               ),
             ],

@@ -1,3 +1,4 @@
+import '../../../../../shared/enums/liaison_status.dart';
 import '../repositories/liaisons_repository.dart';
 
 class GetMyLiaisonStatusUsecase {
@@ -5,7 +6,7 @@ class GetMyLiaisonStatusUsecase {
 
   GetMyLiaisonStatusUsecase(this.repository);
 
-  Future<String?> call() {
+  Future<LiaisonStatus> call() {
     return repository.getMyLiaisonStatus();
   }
 }
