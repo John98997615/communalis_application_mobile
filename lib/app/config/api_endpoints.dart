@@ -23,6 +23,7 @@ class ApiEndpoints {
 
   // PARENTS
   static const parents = '/parents';
+  static const parentDashboard = '/parent/dashboard';
 
   // LIAISONS
   static const liaisons = '/liaisons';

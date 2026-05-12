@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../../app/router/route_names.dart';
 import '../../../../../shared/enums/liaison_status.dart';
 import '../../../../../shared/enums/user_role.dart';
-// import '../../../../liaisons/presentation/providers/child_gallery_provider.dart';
 import '../providers/auth_provider.dart';
 
 class RoleRedirectScreen extends ConsumerStatefulWidget {
