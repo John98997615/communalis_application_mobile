@@ -123,10 +123,10 @@ class _Avatar extends StatelessWidget {
             width: 72,
             height: 72,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const Icon(
+            errorBuilder: ((context, error, stackTrace) => const Icon(
               Icons.person,
               size: 36,
-            ),
+            )),
           ),
         ),
       );

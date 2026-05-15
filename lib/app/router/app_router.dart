@@ -9,6 +9,9 @@ import '../../features/auth/presentation/screens/role_redirect_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/liaisons/presentation/screens/children_gallery_screen.dart';
 import '../../features/liaisons/presentation/screens/parent_waiting_validation_screen.dart';
+import '../../features/parent_dashboard/presentation/screens/parent_dashboard_screen.dart';
+import '../../features/child_profile/presentation/screens/child_profile_screen.dart';
+import '../../features/messaging/presentation/screens/child_chat_screen.dart';
 import 'route_names.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -44,10 +47,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.parentDashboard,
-        builder: (context, state) => const _TempScreen(
-          title: 'Dashboard Parent',
-          message: 'Espace Parent',
-        ),
+        builder: (context, state) => const ParentDashboardScreen(),
       ),
       GoRoute(
         path: RouteNames.parentWaitingValidation,
@@ -60,6 +60,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.parentWaitingValidation,
         builder: (context, state) => const ParentWaitingValidationScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.childProfile,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+
+          return ChildProfileScreen(childId: id);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.childChat,
+        builder: (context, state) {
+          final childId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          final childName = state.uri.queryParameters['name'] ?? 'Enfant';
+
+          return ChildChatScreen(childId: childId, childName: childName);
+        },
       ),
     ],
   );

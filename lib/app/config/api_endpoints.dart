@@ -24,6 +24,13 @@ class ApiEndpoints {
   // PARENTS
   static const parents = '/parents';
   static const parentDashboard = '/parent/dashboard';
+  static String parentChildDetail(int childId) => '/parent/children/$childId';
+
+  static String childMessages(int childId) =>
+      '/parent/children/$childId/comments';
+
+  static String sendChildMessage(int childId) =>
+      '/parent/children/$childId/comments';
 
   // LIAISONS
   static const liaisons = '/liaisons';

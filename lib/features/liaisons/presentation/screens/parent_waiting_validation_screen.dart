@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:communalis_application_mobile/app/router/route_names.dart';
 import 'package:communalis_application_mobile/core/widgets/app_button.dart';
-import 'package:communalis_application_mobile/core/widgets/status_badge.dart';
 
 class ParentWaitingValidationScreen extends StatelessWidget {
   const ParentWaitingValidationScreen({super.key});
