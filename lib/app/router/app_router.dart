@@ -12,6 +12,7 @@ import '../../features/liaisons/presentation/screens/parent_waiting_validation_s
 import '../../features/parent_dashboard/presentation/screens/parent_dashboard_screen.dart';
 import '../../features/child_profile/presentation/screens/child_profile_screen.dart';
 import '../../features/messaging/presentation/screens/child_chat_screen.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import 'route_names.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -76,6 +77,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final childName = state.uri.queryParameters['name'] ?? 'Enfant';
 
           return ChildChatScreen(childId: childId, childName: childName);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.notifications,
+        builder: (context, state) {
+          return const NotificationsScreen();
         },
       ),
     ],

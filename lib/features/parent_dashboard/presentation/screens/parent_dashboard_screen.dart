@@ -1,9 +1,10 @@
+import 'package:communalis_application_mobile/features/notifications/presentation/providers/notifications_provider.dart';
+import 'package:communalis_application_mobile/features/notifications/presentation/widgets/notification_badge_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:go_router/go_router.dart';
-import '../../../../../app/router/route_names.dart';
 
+import '../../../../../app/router/route_names.dart';
 import '../../../../../core/widgets/app_empty_view.dart';
 import '../../../../../core/widgets/app_error_view.dart';
 import '../../../../../core/widgets/app_loader.dart';
@@ -26,9 +27,15 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
   void initState() {
     super.initState();
 
-    Future.microtask(() {
-      ref.read(parentDashboardProvider.notifier).loadDashboard();
+    Future.microtask(() async {
+      await ref.read(parentDashboardProvider.notifier).loadDashboard();
+      await ref.read(notificationsProvider.notifier).loadNotifications();
     });
+  }
+
+  Future<void> _refreshDashboard() async {
+    await ref.read(parentDashboardProvider.notifier).loadDashboard();
+    await ref.read(notificationsProvider.notifier).loadNotifications();
   }
 
   @override
@@ -36,11 +43,26 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
     final state = ref.watch(parentDashboardProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Espace Parent')),
+      appBar: AppBar(
+        title: const Text('Espace Parent'),
+        actions: [
+          Consumer(
+            builder: (context, ref, _) {
+              final notificationsState = ref.watch(notificationsProvider);
+
+              return NotificationBadgeButton(
+                unreadCount: notificationsState.unreadCount,
+                onTap: () {
+                  context.go(RouteNames.notifications);
+                },
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: RefreshIndicator(
-        onRefresh: () {
-          return ref.read(parentDashboardProvider.notifier).loadDashboard();
-        },
+        onRefresh: _refreshDashboard,
         child: Builder(
           builder: (context) {
             if (state.isLoading && state.dashboard == null) {
@@ -52,9 +74,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
             if (state.errorMessage != null && state.dashboard == null) {
               return AppErrorView(
                 message: state.errorMessage!,
-                onRetry: () {
-                  ref.read(parentDashboardProvider.notifier).loadDashboard();
-                },
+                onRetry: _refreshDashboard,
               );
             }
 

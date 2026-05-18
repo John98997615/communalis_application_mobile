@@ -55,6 +55,15 @@ class ApiEndpoints {
 
   // NOTIFICATIONS
   static const notifications = '/notifications';
+  static const parentNotifications = '/parent/notifications';
+
+  // Marquer une notification comme lue pour un parent
+  static String markParentNotificationAsRead(int notificationId) =>
+      '/parent/notifications/$notificationId/read';
+
+  // Marquer toutes les notifications d'un parent comme lues
+  static const markAllParentNotificationsAsRead =
+      '/parent/notifications/read-all';
 
   // PROFILE
   static const profile = '/admin/profile';
