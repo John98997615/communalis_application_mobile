@@ -23,6 +23,8 @@ class NotificationTile extends StatelessWidget {
         return Icons.chat_bubble_outline;
       case 'LIAISON_APPROUVEE':
         return Icons.verified_user_outlined;
+      case 'LIAISON_REFUSEE':
+        return Icons.cancel_outlined;
       default:
         return Icons.notifications_outlined;
     }
@@ -31,15 +33,14 @@ class NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: notification.isRead ? null : AppColors.primary.withValues(alpha: 0.06),
+      color: notification.isRead
+          ? null
+          : AppColors.primary.withValues(alpha: 0.06),
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: AppColors.primary.withValues(alpha: 0.10),
-          child: Icon(
-            _icon,
-            color: AppColors.primary,
-          ),
+          child: Icon(_icon, color: AppColors.primary),
         ),
         title: Text(
           notification.readableType,
@@ -48,11 +49,7 @@ class NotificationTile extends StatelessWidget {
         subtitle: Text(notification.content),
         trailing: notification.isRead
             ? null
-            : const Icon(
-                Icons.circle,
-                size: 10,
-                color: AppColors.primary,
-              ),
+            : const Icon(Icons.circle, size: 10, color: AppColors.primary),
       ),
     );
   }

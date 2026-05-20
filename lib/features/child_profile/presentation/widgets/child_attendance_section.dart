@@ -13,6 +13,56 @@ class ChildAttendanceSection extends StatelessWidget {
     required this.attendance,
   });
 
+  String _twoDigits(int value) => value.toString().padLeft(2, '0');
+
+  String _formatAttendanceDate(String? rawDate) {
+    if (rawDate == null || rawDate.trim().isEmpty) {
+      return 'Date non disponible';
+    }
+
+    final parsedDate = DateTime.tryParse(rawDate);
+
+    if (parsedDate == null) {
+      return rawDate;
+    }
+
+    final localDate = parsedDate.toLocal();
+
+    final day = _twoDigits(localDate.day);
+    final month = _twoDigits(localDate.month);
+    final year = localDate.year.toString();
+
+    final hasRealTime =
+        localDate.hour != 0 || localDate.minute != 0 || localDate.second != 0;
+
+    if (!hasRealTime) {
+      return '$day/$month/$year';
+    }
+
+    final hour = _twoDigits(localDate.hour);
+    final minute = _twoDigits(localDate.minute);
+
+    return '$day/$month/$year à $hour:$minute';
+  }
+
+  Color _statusColor(String status) {
+    final normalized = status.toUpperCase();
+
+    if (normalized.contains('ABSENT')) return AppColors.error;
+    if (normalized.contains('RETARD')) return AppColors.warning;
+
+    return AppColors.success;
+  }
+
+  IconData _statusIcon(String status) {
+    final normalized = status.toUpperCase();
+
+    if (normalized.contains('ABSENT')) return Icons.cancel_outlined;
+    if (normalized.contains('RETARD')) return Icons.schedule_outlined;
+
+    return Icons.check_circle_outline;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -23,14 +73,29 @@ class ChildAttendanceSection extends StatelessWidget {
           children: [
             const Text(
               'Présences',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 14),
             Row(
               children: [
-                _StatBox(label: 'Présent', value: stats.presentCount, color: AppColors.success),
-                _StatBox(label: 'Absent', value: stats.absentCount, color: AppColors.error),
-                _StatBox(label: 'Retard', value: stats.lateCount, color: AppColors.warning),
+                _StatBox(
+                  label: 'Présent',
+                  value: stats.presentCount,
+                  color: AppColors.success,
+                ),
+                _StatBox(
+                  label: 'Absent',
+                  value: stats.absentCount,
+                  color: AppColors.error,
+                ),
+                _StatBox(
+                  label: 'Retard',
+                  value: stats.lateCount,
+                  color: AppColors.warning,
+                ),
               ],
             ),
             const SizedBox(height: 14),
@@ -38,13 +103,28 @@ class ChildAttendanceSection extends StatelessWidget {
               const Text('Aucune présence enregistrée.')
             else
               ...attendance.take(4).map(
-                    (item) => ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.event_available_outlined),
-                      title: Text(item.status),
-                      subtitle: Text(item.date ?? ''),
+                (item) {
+                  final color = _statusColor(item.status);
+
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      _statusIcon(item.status),
+                      color: color,
                     ),
-                  ),
+                    title: Text(
+                      item.status,
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: Text(
+                      _formatAttendanceDate(item.date),
+                    ),
+                  );
+                },
+              ),
           ],
         ),
       ),
@@ -85,7 +165,10 @@ class _StatBox extends StatelessWidget {
             ),
             Text(
               label,
-              style: TextStyle(color: color, fontSize: 12),
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+              ),
             ),
           ],
         ),

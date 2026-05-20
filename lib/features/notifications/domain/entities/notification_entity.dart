@@ -29,6 +29,8 @@ class NotificationEntity {
         return 'Nouveau commentaire';
       case 'LIAISON_APPROUVEE':
         return 'Liaison approuvée';
+      case 'LIAISON_REFUSEE':
+        return 'Liaison refusée';
       case 'MODIFICATION_PROFIL_ENFANT':
         return 'Profil enfant';
       default:
