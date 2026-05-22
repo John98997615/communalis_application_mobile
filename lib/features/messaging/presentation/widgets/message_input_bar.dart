@@ -45,7 +45,7 @@ class MessageInputBar extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           CircleAvatar(
-            backgroundColor: AppColors.primary,
+            backgroundColor: AppColors.primaryRed,
             child: isLoading
                 ? const SizedBox(
                     height: 18,

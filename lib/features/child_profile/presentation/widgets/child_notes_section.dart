@@ -36,7 +36,7 @@ class ChildNotesSection extends StatelessWidget {
                       trailing: Text(
                         grade.value == null ? '--' : grade.value!.toStringAsFixed(1),
                         style: const TextStyle(
-                          color: AppColors.primary,
+                          color: AppColors.primaryRed,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),

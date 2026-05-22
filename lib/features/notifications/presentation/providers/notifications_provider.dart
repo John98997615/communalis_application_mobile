@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../../core/network/api_client.dart';
 import '../../data/datasources/notifications_remote_datasource.dart';
 import '../../data/repositories/notifications_repository_impl.dart';
+import '../../domain/entities/notification_entity.dart';
 import '../../domain/repositories/notifications_repository.dart';
 import '../../domain/usecases/get_notifications_usecase.dart';
 import '../../domain/usecases/mark_all_notifications_as_read_usecase.dart';
@@ -61,6 +64,9 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
   final MarkNotificationAsReadUsecase markNotificationAsReadUsecase;
   final MarkAllNotificationsAsReadUsecase markAllNotificationsAsReadUsecase;
 
+  Timer? _autoRefreshTimer;
+  bool _isRefreshingSilently = false;
+
   NotificationsNotifier({
     required this.getNotificationsUsecase,
     required this.markNotificationAsReadUsecase,
@@ -104,10 +110,51 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
         notifications: notifications,
       );
     } catch (_) {
-      state = state.copyWith(
-        isRefreshing: false,
-      );
+      state = state.copyWith(isRefreshing: false);
     }
+  }
+
+  Future<void> refreshSilently() async {
+    if (state.isLoading ||
+        state.isUpdating ||
+        state.isRefreshing ||
+        _isRefreshingSilently) {
+      return;
+    }
+
+    _isRefreshingSilently = true;
+
+    try {
+      final freshNotifications = await getNotificationsUsecase();
+
+      if (!_hasChanged(state.notifications, freshNotifications)) {
+        return;
+      }
+
+      state = state.copyWith(
+        notifications: freshNotifications,
+        clearFeedback: true,
+      );
+    } catch (_) {
+      // Refresh silencieux : aucune erreur visuelle pour éviter le bruit.
+    } finally {
+      _isRefreshingSilently = false;
+    }
+  }
+
+  void startAutoRefresh({
+    Duration interval = const Duration(seconds: 10),
+  }) {
+    if (_autoRefreshTimer != null) return;
+
+    _autoRefreshTimer = Timer.periodic(interval, (_) {
+      refreshSilently();
+    });
+  }
+
+  void stopAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = null;
   }
 
   Future<void> markAsRead(int notificationId) async {
@@ -123,7 +170,6 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
 
       final updatedNotifications = state.notifications.map((notification) {
         if (notification.id != notificationId) return notification;
-
         return notification.copyWith(isRead: true);
       }).toList();
 
@@ -165,18 +211,33 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
     }
   }
 
+  bool _hasChanged(
+    List<NotificationEntity> current,
+    List<NotificationEntity> fresh,
+  ) {
+    if (current.length != fresh.length) return true;
+
+    for (var i = 0; i < current.length; i++) {
+      final oldItem = current[i];
+      final newItem = fresh[i];
+
+      if (oldItem.id != newItem.id) return true;
+      if (oldItem.isRead != newItem.isRead) return true;
+      if (oldItem.type != newItem.type) return true;
+      if (oldItem.content != newItem.content) return true;
+      if (oldItem.createdAt != newItem.createdAt) return true;
+    }
+
+    return false;
+  }
+
   void clearFeedback() {
     state = state.copyWith(clearFeedback: true);
   }
-}
 
-class NotificationEntityCopy {
-  static dynamic from(
-    dynamic notification, {
-    bool? isRead,
-  }) {
-    return notification.runtimeType == notification.runtimeType
-        ? notification.copyWith?.call(isRead: isRead)
-        : notification;
+  @override
+  void dispose() {
+    stopAutoRefresh();
+    super.dispose();
   }
 }

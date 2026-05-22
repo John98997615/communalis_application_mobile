@@ -20,9 +20,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   void initState() {
     super.initState();
 
-    Future.microtask(() {
-      ref.read(notificationsProvider.notifier).loadNotifications();
+    Future.microtask(() async {
+      await ref.read(notificationsProvider.notifier).loadNotifications();
+      ref.read(notificationsProvider.notifier).startAutoRefresh();
     });
+  }
+
+  @override
+  void dispose() {
+    ref.read(notificationsProvider.notifier).stopAutoRefresh();
+    super.dispose();
   }
 
   @override

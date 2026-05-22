@@ -30,7 +30,15 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
     Future.microtask(() async {
       await ref.read(parentDashboardProvider.notifier).loadDashboard();
       await ref.read(notificationsProvider.notifier).loadNotifications();
+
+      ref.read(notificationsProvider.notifier).startAutoRefresh();
     });
+  }
+
+  @override
+  void dispose() {
+    ref.read(notificationsProvider.notifier).stopAutoRefresh();
+    super.dispose();
   }
 
   Future<void> _refreshDashboard() async {

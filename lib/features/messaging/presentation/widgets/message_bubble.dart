@@ -27,7 +27,7 @@ class MessageBubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.76,
         ),
         decoration: BoxDecoration(
-          color: isMe ? AppColors.primary : AppColors.surface,
+          color: isMe ? AppColors.primaryRed : AppColors.surface,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
             topRight: const Radius.circular(18),

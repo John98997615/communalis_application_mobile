@@ -35,12 +35,12 @@ class NotificationTile extends StatelessWidget {
     return Card(
       color: notification.isRead
           ? null
-          : AppColors.primary.withValues(alpha: 0.06),
+          : AppColors.primaryRed.withValues(alpha: 0.06),
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
-          backgroundColor: AppColors.primary.withValues(alpha: 0.10),
-          child: Icon(_icon, color: AppColors.primary),
+          backgroundColor: AppColors.primaryRed.withValues(alpha: 0.10),
+          child: Icon(_icon, color: AppColors.primaryRed),
         ),
         title: Text(
           notification.readableType,
@@ -49,7 +49,7 @@ class NotificationTile extends StatelessWidget {
         subtitle: Text(notification.content),
         trailing: notification.isRead
             ? null
-            : const Icon(Icons.circle, size: 10, color: AppColors.primary),
+            : const Icon(Icons.circle, size: 10, color: AppColors.primaryRed),
       ),
     );
   }

@@ -27,7 +27,7 @@ class ChildGalleryCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
+            color: isSelected ? AppColors.primaryRed : AppColors.border,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
@@ -87,7 +87,7 @@ class ChildGalleryCard extends StatelessWidget {
                 child: isSelected
                     ? const Icon(
                         Icons.check_circle,
-                        color: AppColors.primary,
+                        color: AppColors.primaryRed,
                         key: ValueKey('selected'),
                       )
                     : const Icon(
