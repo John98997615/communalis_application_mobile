@@ -354,7 +354,7 @@ class _GoogleButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/images/google_logo.png', width: 22, height: 22),
+            Image.asset('assets/images/google_logo.png', width: 45, height: 45),
             const SizedBox(width: AppSpacing.md),
             Text('Continuer avec google', style: AppTextStyles.bodyBold),
           ],

@@ -21,15 +21,9 @@ class OtpScreen extends ConsumerStatefulWidget {
 }
 
 class _OtpScreenState extends ConsumerState<OtpScreen> {
-  final _controllers = List.generate(
-    6,
-    (_) => TextEditingController(),
-  );
+  final _controllers = List.generate(6, (_) => TextEditingController());
 
-  final _focusNodes = List.generate(
-    6,
-    (_) => FocusNode(),
-  );
+  final _focusNodes = List.generate(6, (_) => FocusNode());
 
   String get _otpCode {
     return _controllers.map((controller) => controller.text).join();
@@ -74,10 +68,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       return;
     }
 
-    await ref.read(authProvider.notifier).verifyOtp(
-          email: email,
-          otp: _otpCode,
-        );
+    await ref
+        .read(authProvider.notifier)
+        .verifyOtp(email: email, otp: _otpCode);
 
     if (!mounted) return;
 
@@ -166,9 +159,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               Text(
                 'Vérification OTP',
                 textAlign: TextAlign.center,
-                style: AppTextStyles.titleLarge.copyWith(
-                  fontSize: 28,
-                ),
+                style: AppTextStyles.titleLarge.copyWith(fontSize: 28),
               ),
 
               const SizedBox(height: 54),
@@ -176,9 +167,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               Text(
                 'Entrez le code de vérification',
                 textAlign: TextAlign.center,
-                style: AppTextStyles.bodyBold.copyWith(
-                  fontSize: 16,
-                ),
+                style: AppTextStyles.bodyBold.copyWith(fontSize: 16),
               ),
 
               const SizedBox(height: AppSpacing.sm),
@@ -188,26 +177,21 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     ? 'Un code de 6 chiffres a été envoyé à votre email'
                     : 'Un code de 6 chiffres a été envoyé à $email',
                 textAlign: TextAlign.center,
-                style: AppTextStyles.caption.copyWith(
-                  fontSize: 13,
-                ),
+                style: AppTextStyles.caption.copyWith(fontSize: 13),
               ),
 
               const SizedBox(height: 70),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(
-                  6,
-                  (index) {
-                    return _OtpBox(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      enabled: !authState.isLoading,
-                      onChanged: (value) => _onChanged(value, index),
-                    );
-                  },
-                ),
+                children: List.generate(6, (index) {
+                  return _OtpBox(
+                    controller: _controllers[index],
+                    focusNode: _focusNodes[index],
+                    enabled: !authState.isLoading,
+                    onChanged: (value) => _onChanged(value, index),
+                  );
+                }),
               ),
 
               const SizedBox(height: 16),
@@ -344,13 +328,21 @@ class _OtpBoxState extends State<_OtpBox> {
         keyboardType: TextInputType.number,
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(1),
         ],
         style: AppTextStyles.titleSmall.copyWith(
-          fontWeight: FontWeight.w800,
+          color: AppColors.black,
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
         ),
+
+        cursorColor: AppColors.primaryRed,
+        textAlignVertical: TextAlignVertical.center,
+
         decoration: const InputDecoration(
           counterText: '',
           border: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
         ),
         onChanged: widget.onChanged,
       ),

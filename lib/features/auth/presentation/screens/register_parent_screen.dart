@@ -3,10 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../app/router/route_names.dart';
+import '../../../../../app/theme/app_colors.dart';
+import '../../../../../app/theme/app_radius.dart';
+import '../../../../../app/theme/app_spacing.dart';
+import '../../../../../app/theme/app_text_styles.dart';
 import '../../../../../core/utils/validators.dart';
-import '../../../../../core/widgets/app_button.dart';
-import '../../../../../core/widgets/app_text_field.dart';
+import '../../../../../shared/widgets/communalis_button.dart';
 import '../providers/auth_provider.dart';
+import '../providers/auth_state.dart';
 
 class RegisterParentScreen extends ConsumerStatefulWidget {
   const RegisterParentScreen({super.key});
@@ -28,6 +32,7 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _acceptTerms = true;
 
   @override
   void dispose() {
@@ -53,14 +58,26 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
   }
 
   Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
+
     if (!_formKey.currentState!.validate()) return;
 
+    if (!_acceptTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez accepter les conditions avant de continuer.'),
+          backgroundColor: AppColors.primaryRed,
+        ),
+      );
+      return;
+    }
+
     await ref.read(authProvider.notifier).registerParent(
-          firstName: _firstNameController.text,
-          lastName: _lastNameController.text,
-          email: _emailController.text,
-          phone: _phoneController.text,
-          password: _passwordController.text,
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          email: _emailController.text.trim(),
+          phone: _phoneController.text.trim(),
+          password: _passwordController.text.trim(),
         );
 
     if (!mounted) return;
@@ -73,6 +90,7 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
           content: Text(
             'Compte parent créé. Vous pouvez maintenant vous connecter.',
           ),
+          backgroundColor: AppColors.success,
         ),
       );
 
@@ -84,95 +102,164 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
-    ref.listen(authProvider, (previous, next) {
+    ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.errorMessage!),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.primaryRed,
           ),
         );
       }
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inscription Parent'),
-      ),
+      backgroundColor: AppColors.primaryYellow,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
             child: Column(
               children: [
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
 
-                const CircleAvatar(
-                  radius: 42,
-                  child: Icon(Icons.person_outline, size: 42),
-                ),
-
-                const SizedBox(height: 12),
-
-                const Text(
-                  'Créer un compte parent',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    onPressed: authState.isLoading
+                        ? null
+                        : () => context.go(RouteNames.login),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: AppColors.black,
+                    ),
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 6),
 
-                AppTextField(
+                Text(
+                  'Inscription',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.titleLarge.copyWith(
+                    fontSize: 30,
+                  ),
+                ),
+
+                const SizedBox(height: 22),
+
+                Container(
+                  width: 96,
+                  height: 96,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.black,
+                      width: 3,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 18,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.family_restroom_rounded,
+                    size: 44,
+                    color: AppColors.primaryRed,
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                Text(
+                  'Créer un compte parent',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.titleSmall,
+                ),
+
+                const SizedBox(height: 6),
+
+                Text(
+                  'Renseignez vos informations pour suivre la scolarité de vos enfants.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.black,
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+
+                _SectionTitle(title: 'Informations personnelles'),
+
+                const SizedBox(height: 12),
+
+                _RegisterAnimatedField(
                   controller: _firstNameController,
                   label: 'Prénom',
-                  prefixIcon: Icons.person_outline,
+                  hint: 'Votre prénom',
+                  icon: Icons.person_outline,
                   validator: (value) => Validators.requiredField(
                     value,
                     fieldName: 'Prénom',
                   ),
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 18),
 
-                AppTextField(
+                _RegisterAnimatedField(
                   controller: _lastNameController,
                   label: 'Nom',
-                  prefixIcon: Icons.person_outline,
+                  hint: 'Votre nom',
+                  icon: Icons.badge_outlined,
                   validator: (value) => Validators.requiredField(
                     value,
                     fieldName: 'Nom',
                   ),
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 22),
 
-                AppTextField(
+                _SectionTitle(title: 'Coordonnées'),
+
+                const SizedBox(height: 12),
+
+                _RegisterAnimatedField(
                   controller: _emailController,
                   label: 'Email',
-                  prefixIcon: Icons.email_outlined,
+                  hint: 'votre@email.com',
+                  icon: Icons.mail_outline,
                   keyboardType: TextInputType.emailAddress,
                   validator: Validators.email,
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 18),
 
-                AppTextField(
+                _RegisterAnimatedField(
                   controller: _phoneController,
                   label: 'Téléphone',
-                  prefixIcon: Icons.phone_outlined,
+                  hint: '+228 XX XX XX XX',
+                  icon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
                   validator: Validators.phone,
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 22),
 
-                AppTextField(
+                _SectionTitle(title: 'Sécurité du compte'),
+
+                const SizedBox(height: 12),
+
+                _RegisterAnimatedField(
                   controller: _passwordController,
                   label: 'Mot de passe',
-                  prefixIcon: Icons.lock_outline,
+                  hint: 'Créer un mot de passe',
+                  icon: Icons.lock_outline,
                   obscureText: _obscurePassword,
                   validator: Validators.password,
                   suffixIcon: IconButton(
@@ -185,52 +272,272 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
                       _obscurePassword
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
+                      color: AppColors.grey,
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 18),
 
-                AppTextField(
+                _RegisterAnimatedField(
                   controller: _confirmPasswordController,
-                  label: 'Confirmer le mot de passe',
-                  prefixIcon: Icons.lock_outline,
+                  label: 'Confirmation',
+                  hint: 'Confirmer le mot de passe',
+                  icon: Icons.lock_reset_outlined,
                   obscureText: _obscureConfirmPassword,
                   validator: _confirmPasswordValidator,
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() {
-                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                        _obscureConfirmPassword =
+                            !_obscureConfirmPassword;
                       });
                     },
                     icon: Icon(
                       _obscureConfirmPassword
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
+                      color: AppColors.grey,
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
 
-                AppButton(
+                _TermsBox(
+                  value: _acceptTerms,
+                  onChanged: (value) {
+                    setState(() {
+                      _acceptTerms = value ?? false;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 28),
+
+                CommunalisButton(
                   text: 'Créer mon compte',
+                  icon: Icons.arrow_forward_rounded,
                   isLoading: authState.isLoading,
                   onPressed: _submit,
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 18),
 
-                TextButton(
-                  onPressed: authState.isLoading
-                      ? null
-                      : () => context.go(RouteNames.login),
-                  child: const Text('J’ai déjà un compte'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Vous avez déjà un compte? ',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.black,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: authState.isLoading
+                          ? null
+                          : () => context.go(RouteNames.login),
+                      child: Text(
+                        'Se connecter',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.primaryRed,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+
+                const SizedBox(height: 26),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle({
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: const BoxDecoration(
+            color: AppColors.primaryRed,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: AppTextStyles.bodyBold.copyWith(
+            color: AppColors.black,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RegisterAnimatedField extends StatefulWidget {
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final bool obscureText;
+  final TextInputType? keyboardType;
+  final Widget? suffixIcon;
+  final String? Function(String?)? validator;
+
+  const _RegisterAnimatedField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.icon,
+    this.obscureText = false,
+    this.keyboardType,
+    this.suffixIcon,
+    this.validator,
+  });
+
+  @override
+  State<_RegisterAnimatedField> createState() =>
+      _RegisterAnimatedFieldState();
+}
+
+class _RegisterAnimatedFieldState extends State<_RegisterAnimatedField> {
+  final _focusNode = FocusNode();
+
+  bool get _isActive =>
+      _focusNode.hasFocus || widget.controller.text.trim().isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
+    widget.controller.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        TextFormField(
+          controller: widget.controller,
+          focusNode: _focusNode,
+          obscureText: widget.obscureText,
+          keyboardType: widget.keyboardType,
+          validator: widget.validator,
+          decoration: InputDecoration(
+            hintText: widget.hint,
+            prefixIcon: const SizedBox(width: 54),
+            suffixIcon: widget.suffixIcon,
+            filled: true,
+            fillColor: AppColors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 18,
+              vertical: 18,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.black),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(
+                color: AppColors.primaryRed,
+                width: 2,
+              ),
+            ),
+          ),
+        ),
+
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          left: _isActive ? 16 : 14,
+          top: _isActive ? -13 : 17,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: EdgeInsets.all(_isActive ? 6 : 0),
+            decoration: BoxDecoration(
+              color: _isActive
+                  ? AppColors.primaryYellow
+                  : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              widget.icon,
+              size: _isActive ? 18 : 22,
+              color: _isActive ? AppColors.primaryRed : AppColors.grey,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TermsBox extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool?> onChanged;
+
+  const _TermsBox({
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.black),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Checkbox(
+            value: value,
+            activeColor: AppColors.primaryRed,
+            onChanged: onChanged,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                'J’accepte que mes informations soient utilisées pour créer mon compte parent Communalis.',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.black,
+                  height: 1.35,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
