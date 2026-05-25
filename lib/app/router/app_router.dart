@@ -59,10 +59,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ChildrenGalleryScreen(),
       ),
       GoRoute(
-        path: RouteNames.parentWaitingValidation,
-        builder: (context, state) => const ParentWaitingValidationScreen(),
-      ),
-      GoRoute(
         path: RouteNames.childProfile,
         builder: (context, state) {
           final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;

@@ -9,7 +9,6 @@ import '../../../../../app/theme/app_radius.dart';
 import '../../../../../app/theme/app_spacing.dart';
 import '../../../../../app/theme/app_text_styles.dart';
 import '../../../../../shared/widgets/communalis_button.dart';
-import '../../../../../shared/widgets/communalis_card.dart';
 import '../providers/auth_provider.dart';
 import '../providers/auth_state.dart';
 

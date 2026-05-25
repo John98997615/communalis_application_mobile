@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
+import 'package:country_picker/country_picker.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../../app/router/route_names.dart';
 import '../../../../../app/theme/app_colors.dart';
@@ -34,6 +38,14 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
   bool _obscureConfirmPassword = true;
   bool _acceptTerms = true;
 
+  String _selectedCountryFlag = '🇹🇬';
+  String _selectedCountryCode = '+228';
+
+  final _picker = ImagePicker();
+
+  String? _photoPath;
+  Uint8List? _photoBytes;
+
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -57,6 +69,51 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
     return null;
   }
 
+  Future<void> _pickPhoto() async {
+    final image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 75,
+      maxWidth: 900,
+    );
+
+    if (image == null) return;
+
+    final bytes = await image.readAsBytes();
+
+    setState(() {
+      _photoPath = image.path;
+      _photoBytes = bytes;
+    });
+  }
+
+  void _showCountryPicker() {
+    showCountryPicker(
+      context: context,
+      showPhoneCode: true,
+      countryListTheme: CountryListThemeData(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        backgroundColor: AppColors.white,
+        inputDecoration: InputDecoration(
+          hintText: 'Rechercher un pays',
+          prefixIcon: const Icon(Icons.search),
+          filled: true,
+          fillColor: AppColors.primaryYellow.withValues(alpha: 0.25),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        textStyle: AppTextStyles.body.copyWith(color: AppColors.black),
+      ),
+      onSelect: (Country country) {
+        setState(() {
+          _selectedCountryFlag = country.flagEmoji;
+          _selectedCountryCode = '+${country.phoneCode}';
+        });
+      },
+    );
+  }
+
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
 
@@ -72,12 +129,15 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
       return;
     }
 
-    await ref.read(authProvider.notifier).registerParent(
+    await ref
+        .read(authProvider.notifier)
+        .registerParent(
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           email: _emailController.text.trim(),
-          phone: _phoneController.text.trim(),
+          phone: '$_selectedCountryCode${_phoneController.text.trim()}',
           password: _passwordController.text.trim(),
+          photoPath: _photoPath,
         );
 
     if (!mounted) return;
@@ -142,38 +202,12 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
                 Text(
                   'Inscription',
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.titleLarge.copyWith(
-                    fontSize: 30,
-                  ),
+                  style: AppTextStyles.titleLarge.copyWith(fontSize: 30),
                 ),
 
                 const SizedBox(height: 22),
 
-                Container(
-                  width: 96,
-                  height: 96,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.black,
-                      width: 3,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 18,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.family_restroom_rounded,
-                    size: 44,
-                    color: AppColors.primaryRed,
-                  ),
-                ),
+                _PhotoSelector(photoBytes: _photoBytes, onTap: _pickPhoto),
 
                 const SizedBox(height: 18),
 
@@ -188,9 +222,7 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
                 Text(
                   'Renseignez vos informations pour suivre la scolarité de vos enfants.',
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.caption.copyWith(color: AppColors.black),
                 ),
 
                 const SizedBox(height: 28),
@@ -204,10 +236,15 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
                   label: 'Prénom',
                   hint: 'Votre prénom',
                   icon: Icons.person_outline,
-                  validator: (value) => Validators.requiredField(
-                    value,
-                    fieldName: 'Prénom',
-                  ),
+                  keyboardType: TextInputType.name,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r"[a-zA-ZÀ-ÿ\s'-]"),
+                    ),
+                    LengthLimitingTextInputFormatter(40),
+                  ],
+                  validator: (value) =>
+                      Validators.requiredField(value, fieldName: 'Prénom'),
                 ),
 
                 const SizedBox(height: 18),
@@ -217,10 +254,15 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
                   label: 'Nom',
                   hint: 'Votre nom',
                   icon: Icons.badge_outlined,
-                  validator: (value) => Validators.requiredField(
-                    value,
-                    fieldName: 'Nom',
-                  ),
+                  keyboardType: TextInputType.name,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r"[a-zA-ZÀ-ÿ\s'-]"),
+                    ),
+                    LengthLimitingTextInputFormatter(40),
+                  ],
+                  validator: (value) =>
+                      Validators.requiredField(value, fieldName: 'Nom'),
                 ),
 
                 const SizedBox(height: 22),
@@ -235,6 +277,10 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
                   hint: 'votre@email.com',
                   icon: Icons.mail_outline,
                   keyboardType: TextInputType.emailAddress,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                    LengthLimitingTextInputFormatter(80),
+                  ],
                   validator: Validators.email,
                 ),
 
@@ -243,10 +289,65 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
                 _RegisterAnimatedField(
                   controller: _phoneController,
                   label: 'Téléphone',
-                  hint: '+228 XX XX XX XX',
+                  hint: 'XX XX XX XX',
                   icon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(12),
+                  ],
                   validator: Validators.phone,
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      onTap: _showCountryPicker,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 82,
+                          maxWidth: 92,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryYellow.withValues(
+                            alpha: 0.35,
+                          ),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                          border: Border.all(color: AppColors.lightGrey),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _selectedCountryFlag,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                _selectedCountryCode,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.black,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 16,
+                              color: AppColors.black,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 22),
@@ -261,6 +362,11 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
                   hint: 'Créer un mot de passe',
                   icon: Icons.lock_outline,
                   obscureText: _obscurePassword,
+                  keyboardType: TextInputType.visiblePassword,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                    LengthLimitingTextInputFormatter(32),
+                  ],
                   validator: Validators.password,
                   suffixIcon: IconButton(
                     onPressed: () {
@@ -285,12 +391,16 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
                   hint: 'Confirmer le mot de passe',
                   icon: Icons.lock_reset_outlined,
                   obscureText: _obscureConfirmPassword,
+                  keyboardType: TextInputType.visiblePassword,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                    LengthLimitingTextInputFormatter(32),
+                  ],
                   validator: _confirmPasswordValidator,
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() {
-                        _obscureConfirmPassword =
-                            !_obscureConfirmPassword;
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
                       });
                     },
                     icon: Icon(
@@ -361,27 +471,31 @@ class _RegisterParentScreenState extends ConsumerState<RegisterParentScreen> {
 class _SectionTitle extends StatelessWidget {
   final String title;
 
-  const _SectionTitle({
-    required this.title,
-  });
+  const _SectionTitle({required this.title});
+
+  IconData get _icon {
+    if (title.toLowerCase().contains('coordonnées')) {
+      return Icons.phone_rounded;
+    }
+
+    if (title.toLowerCase().contains('sécurité')) {
+      return Icons.lock_rounded;
+    }
+
+    return Icons.person_rounded;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 7,
-          height: 7,
-          decoration: const BoxDecoration(
-            color: AppColors.primaryRed,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 8),
+        Icon(_icon, color: AppColors.primaryRed, size: 22),
+        const SizedBox(width: 10),
         Text(
           title,
-          style: AppTextStyles.bodyBold.copyWith(
-            color: AppColors.black,
+          style: AppTextStyles.titleSmall.copyWith(
+            color: AppColors.primaryRed,
+            fontSize: 18,
           ),
         ),
       ],
@@ -398,6 +512,7 @@ class _RegisterAnimatedField extends StatefulWidget {
   final TextInputType? keyboardType;
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
 
   const _RegisterAnimatedField({
     required this.controller,
@@ -408,11 +523,11 @@ class _RegisterAnimatedField extends StatefulWidget {
     this.keyboardType,
     this.suffixIcon,
     this.validator,
+    this.inputFormatters,
   });
 
   @override
-  State<_RegisterAnimatedField> createState() =>
-      _RegisterAnimatedFieldState();
+  State<_RegisterAnimatedField> createState() => _RegisterAnimatedFieldState();
 }
 
 class _RegisterAnimatedFieldState extends State<_RegisterAnimatedField> {
@@ -449,6 +564,7 @@ class _RegisterAnimatedFieldState extends State<_RegisterAnimatedField> {
           obscureText: widget.obscureText,
           keyboardType: widget.keyboardType,
           validator: widget.validator,
+          inputFormatters: widget.inputFormatters,
           decoration: InputDecoration(
             hintText: widget.hint,
             prefixIcon: const SizedBox(width: 54),
@@ -482,9 +598,7 @@ class _RegisterAnimatedFieldState extends State<_RegisterAnimatedField> {
             duration: const Duration(milliseconds: 180),
             padding: EdgeInsets.all(_isActive ? 6 : 0),
             decoration: BoxDecoration(
-              color: _isActive
-                  ? AppColors.primaryYellow
-                  : Colors.transparent,
+              color: _isActive ? AppColors.primaryYellow : Colors.transparent,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -503,38 +617,303 @@ class _TermsBox extends StatelessWidget {
   final bool value;
   final ValueChanged<bool?> onChanged;
 
-  const _TermsBox({
-    required this.value,
-    required this.onChanged,
+  const _TermsBox({required this.value, required this.onChanged});
+
+  void _showPrivacyCharter(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _PrivacyCharterSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 26,
+                backgroundColor: AppColors.primaryRed.withValues(alpha: 0.40),
+                child: const Icon(
+                  Icons.privacy_tip_outlined,
+                  color: AppColors.primaryRed,
+                ),
+              ),
+
+              const SizedBox(width: 14),
+
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Vos données personnelles sont utilisées uniquement pour créer votre compte et améliorer votre expérience sur Communalis.',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.black,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => _showPrivacyCharter(context),
+              icon: const Icon(
+                Icons.article_outlined,
+                color: AppColors.primaryRed,
+              ),
+              label: Text(
+                'Voir la charte de confidentialité',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.primaryRed,
+                  fontWeight: FontWeight.w900,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
+          CheckboxListTile(
+            value: value,
+            onChanged: onChanged,
+            activeColor: AppColors.primaryRed,
+            controlAffinity: ListTileControlAffinity.leading,
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              'J’ai lu et j’accepte la charte de confidentialité et l’utilisation de mes informations.',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.black,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PhotoSelector extends StatelessWidget {
+  final Uint8List? photoBytes;
+  final VoidCallback onTap;
+
+  const _PhotoSelector({required this.photoBytes, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primaryRed, width: 2),
+                ),
+                child: CircleAvatar(
+                  backgroundColor: AppColors.white.withValues(alpha: 0.75),
+                  backgroundImage: photoBytes == null
+                      ? null
+                      : MemoryImage(photoBytes!),
+                  child: photoBytes == null
+                      ? const Icon(
+                          Icons.camera_alt_rounded,
+                          color: AppColors.primaryRed,
+                          size: 40,
+                        )
+                      : null,
+                ),
+              ),
+              Positioned(
+                right: -2,
+                bottom: 8,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryRed,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.white, width: 3),
+                  ),
+                  child: const Icon(
+                    Icons.edit_rounded,
+                    color: AppColors.white,
+                    size: 19,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Ajouter une photo',
+          style: AppTextStyles.bodyBold.copyWith(color: AppColors.black),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'JPG, PNG (max. 5 Mo)',
+          style: AppTextStyles.caption.copyWith(color: AppColors.black),
+        ),
+      ],
+    );
+  }
+}
+
+class _PrivacyCharterSheet extends StatelessWidget {
+  const _PrivacyCharterSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.88,
+      padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Charte de confidentialité',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close_rounded),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: ListView(
+              children: const [
+                _PrivacyItem(
+                  icon: Icons.description_outlined,
+                  title: '1. Collecte des informations',
+                  text:
+                      'Nous collectons uniquement les informations nécessaires à la création de votre compte parent et au suivi scolaire de vos enfants.',
+                ),
+                _PrivacyItem(
+                  icon: Icons.groups_outlined,
+                  title: '2. Utilisation des informations',
+                  text:
+                      'Vos données servent à vous fournir les services Communalis, améliorer votre expérience et sécuriser votre compte.',
+                ),
+                _PrivacyItem(
+                  icon: Icons.security_outlined,
+                  title: '3. Protection des données',
+                  text:
+                      'Nous mettons en place des mesures de sécurité pour protéger vos informations contre tout accès non autorisé.',
+                ),
+                _PrivacyItem(
+                  icon: Icons.share_outlined,
+                  title: '4. Partage des informations',
+                  text:
+                      'Vos informations ne sont pas vendues. Elles peuvent être partagées uniquement avec les établissements scolaires concernés.',
+                ),
+                _PrivacyItem(
+                  icon: Icons.person_outline,
+                  title: '5. Vos droits',
+                  text:
+                      'Vous pouvez demander la modification ou la suppression de vos informations personnelles.',
+                ),
+                _PrivacyItem(
+                  icon: Icons.email_outlined,
+                  title: '6. Contact',
+                  text: 'Pour toute question, contactez l’équipe Communalis.',
+                ),
+              ],
+            ),
+          ),
+          CommunalisButton(
+            text: 'J’ai compris',
+            icon: Icons.check_rounded,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrivacyItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String text;
+
+  const _PrivacyItem({
+    required this.icon,
+    required this.title,
+    required this.text,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.black),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.lightGrey),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Checkbox(
-            value: value,
-            activeColor: AppColors.primaryRed,
-            onChanged: onChanged,
+          CircleAvatar(
+            backgroundColor: AppColors.primaryRed.withValues(alpha: 0.10),
+            child: Icon(icon, color: AppColors.primaryRed),
           ),
+          const SizedBox(width: 14),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Text(
-                'J’accepte que mes informations soient utilisées pour créer mon compte parent Communalis.',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.black,
-                  height: 1.35,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.bodyBold.copyWith(
+                    color: AppColors.primaryRed,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Text(
+                  text,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.black,
+                    height: 1.45,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

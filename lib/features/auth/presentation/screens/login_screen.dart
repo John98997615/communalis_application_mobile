@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../app/router/route_names.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../app/theme/app_radius.dart';
@@ -102,6 +103,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   hint: 'votre@email.com',
                   icon: Icons.mail_outline,
                   keyboardType: TextInputType.emailAddress,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                    LengthLimitingTextInputFormatter(80),
+                  ],
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Veuillez entrer votre email.';
@@ -121,6 +126,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   hint: 'Entrez votre mot de passe',
                   icon: Icons.lock_outline,
                   obscureText: _obscurePassword,
+                  keyboardType: TextInputType.visiblePassword,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                    LengthLimitingTextInputFormatter(32),
+                  ],
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -191,15 +201,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         color: AppColors.black,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        // On branchera la navigation inscription à l’étape UI-4.
+                    TextButton(
+                      onPressed: () {
+                        context.go(RouteNames.registerParent);
                       },
                       child: Text(
                         'Créer un compte',
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.primaryRed,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
@@ -225,6 +235,7 @@ class _AuthAnimatedField extends StatefulWidget {
   final TextInputType? keyboardType;
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
 
   const _AuthAnimatedField({
     required this.controller,
@@ -235,6 +246,7 @@ class _AuthAnimatedField extends StatefulWidget {
     this.keyboardType,
     this.suffixIcon,
     this.validator,
+    this.inputFormatters,
   });
 
   @override
@@ -278,6 +290,7 @@ class _AuthAnimatedFieldState extends State<_AuthAnimatedField> {
               focusNode: _focusNode,
               obscureText: widget.obscureText,
               keyboardType: widget.keyboardType,
+              inputFormatters: widget.inputFormatters,
               validator: widget.validator,
               decoration: InputDecoration(
                 hintText: widget.hint,
