@@ -13,6 +13,7 @@ import '../../features/parent_dashboard/presentation/screens/parent_dashboard_sc
 import '../../features/child_profile/presentation/screens/child_profile_screen.dart';
 import '../../features/messaging/presentation/screens/child_chat_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/home/presentation/screens/home_choice_screen.dart';
 import 'route_names.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -38,6 +39,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.roleRedirect,
         builder: (context, state) => const RoleRedirectScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.homeChoice,
+        builder: (context, state) => const HomeChoiceScreen(),
       ),
       GoRoute(
         path: RouteNames.adminDashboard,

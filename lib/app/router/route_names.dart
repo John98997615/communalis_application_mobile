@@ -6,6 +6,7 @@ class RouteNames {
   static const registerParent = '/register-parent';
   static const otp = '/otp';
   static const roleRedirect = '/role-redirect';
+  static const homeChoice = '/home';
 
   static const adminDashboard = '/admin/dashboard';
   static const parentDashboard = '/parent/dashboard';

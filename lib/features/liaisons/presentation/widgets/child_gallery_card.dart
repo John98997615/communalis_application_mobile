@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:communalis_application_mobile/app/theme/app_colors.dart';
+import '../../../../../app/theme/app_colors.dart';
+import '../../../../../app/theme/app_radius.dart';
 import '../../domain/entities/child_gallery_item_entity.dart';
 
 class ChildGalleryCard extends StatelessWidget {
@@ -17,89 +18,117 @@ class ChildGalleryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryRed : AppColors.border,
-            width: isSelected ? 2 : 1,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 190),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.white
+                : AppColors.white.withValues(alpha: 0.82),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            border: Border.all(
+              color: isSelected ? AppColors.primaryRed : AppColors.black,
+              width: isSelected ? 3 : 1.4,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isSelected ? 0.12 : 0.05),
+                blurRadius: isSelected ? 16 : 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _Avatar(photoUrl: child.photoUrl),
-                const SizedBox(height: 12),
-                Text(
-                  child.fullName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  child.className ?? 'Classe non renseignée',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  child.matricule.isEmpty
-                      ? 'Matricule indisponible'
-                      : child.matricule,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-            Positioned(
-              top: 0,
-              right: 0,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 150),
+          child: Row(
+            children: [
+              _Avatar(photoUrl: child.photoUrl),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _ChildInfo(child: child),
+              ),
+              const SizedBox(width: 4),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 160),
                 child: isSelected
                     ? const Icon(
-                        Icons.check_circle,
-                        color: AppColors.primaryRed,
+                        Icons.check_circle_rounded,
                         key: ValueKey('selected'),
+                        color: AppColors.primaryRed,
+                        size: 24,
                       )
                     : const Icon(
-                        Icons.radio_button_unchecked,
-                        color: AppColors.textSecondary,
+                        Icons.radio_button_unchecked_rounded,
                         key: ValueKey('unselected'),
+                        color: AppColors.black,
+                        size: 24,
                       ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _ChildInfo extends StatelessWidget {
+  final ChildGalleryItemEntity child;
+
+  const _ChildInfo({
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final name = child.fullName;
+    final matricule =
+        child.matricule.trim().isEmpty ? 'N° indisponible' : 'N°:${child.matricule}';
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: AppColors.black,
+            fontSize: 12.5,
+            height: 1.05,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          child.className?.trim().isNotEmpty == true
+              ? child.className!
+              : 'Classe NC',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: AppColors.darkGrey,
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          matricule,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: AppColors.darkGrey,
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -113,32 +142,42 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (photoUrl != null && photoUrl!.trim().isNotEmpty) {
-      return CircleAvatar(
-        radius: 36,
-        backgroundColor: AppColors.background,
-        child: ClipOval(
-          child: Image.network(
-            photoUrl!,
-            width: 72,
-            height: 72,
-            fit: BoxFit.cover,
-            errorBuilder: ((context, error, stackTrace) => const Icon(
-              Icons.person,
-              size: 36,
-            )),
-          ),
-        ),
-      );
-    }
+    final hasPhoto = photoUrl != null && photoUrl!.trim().isNotEmpty;
 
-    return const CircleAvatar(
-      radius: 36,
-      backgroundColor: AppColors.background,
-      child: Icon(
-        Icons.person,
-        size: 36,
-        color: AppColors.textSecondary,
+    return Container(
+      width: 46,
+      height: 46,
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.white,
+        border: Border.all(
+          color: AppColors.black,
+          width: 1.3,
+        ),
+      ),
+      child: ClipOval(
+        child: hasPhoto
+            ? Image.network(
+                photoUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const ColoredBox(
+                    color: AppColors.primaryYellow,
+                    child: Icon(
+                      Icons.person_rounded,
+                      color: AppColors.black,
+                    ),
+                  );
+                },
+              )
+            : const ColoredBox(
+                color: AppColors.primaryYellow,
+                child: Icon(
+                  Icons.person_rounded,
+                  color: AppColors.black,
+                ),
+              ),
       ),
     );
   }

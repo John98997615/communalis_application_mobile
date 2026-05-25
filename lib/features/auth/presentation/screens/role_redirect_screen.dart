@@ -12,8 +12,7 @@ class RoleRedirectScreen extends ConsumerStatefulWidget {
   const RoleRedirectScreen({super.key});
 
   @override
-  ConsumerState<RoleRedirectScreen> createState() =>
-      _RoleRedirectScreenState();
+  ConsumerState<RoleRedirectScreen> createState() => _RoleRedirectScreenState();
 }
 
 class _RoleRedirectScreenState extends ConsumerState<RoleRedirectScreen> {
@@ -50,15 +49,13 @@ class _RoleRedirectScreenState extends ConsumerState<RoleRedirectScreen> {
 
   Future<void> _redirectParent() async {
     try {
-      final status = await ref.read(
-        getMyLiaisonStatusUsecaseProvider,
-      )();
+      final status = await ref.read(getMyLiaisonStatusUsecaseProvider)();
 
       if (!mounted) return;
 
       switch (status) {
         case LiaisonStatus.approved:
-          context.go(RouteNames.parentDashboard);
+          context.go(RouteNames.homeChoice);
           break;
 
         case LiaisonStatus.pending:
@@ -82,10 +79,6 @@ class _RoleRedirectScreenState extends ConsumerState<RoleRedirectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
