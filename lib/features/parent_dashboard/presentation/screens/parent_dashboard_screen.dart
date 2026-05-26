@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/parent_dashboard_header.dart';
+import '../widgets/pending_association_card.dart';
 
 import '../../../../../app/router/route_names.dart';
 import '../../../../../app/theme/app_colors.dart';
@@ -105,18 +107,19 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
                 children: [
-                  _DashboardHeader(
-                    unreadCount: notificationsState.unreadCount,
-                    onNotificationsTap: () {
-                      context.go(RouteNames.notifications);
+                  ParentDashboardHeader(
+                    parentName: 'Parent',
+                    onBack: () {
+                      context.go(RouteNames.homeChoice);
+                    },
+                    onProfileTap: () {
+                      context.go(RouteNames.profile);
                     },
                   ),
 
                   const SizedBox(height: 28),
 
-                  _PendingAssociationCard(
-                    pendingCount: 0,
-                  ),
+                  const PendingAssociationCard(pendingCount: 0),
 
                   const SizedBox(height: 28),
 
@@ -124,9 +127,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
                     children: [
                       Text(
                         'Mes enfants',
-                        style: AppTextStyles.titleSmall.copyWith(
-                          fontSize: 20,
-                        ),
+                        style: AppTextStyles.titleSmall.copyWith(fontSize: 20),
                       ),
                       const Spacer(),
                       Text(
@@ -138,7 +139,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
                     ],
                   ),
 
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xs),
 
                   Text(
                     'Sélectionnez un enfant pour consulter son suivi scolaire.',
@@ -167,133 +168,6 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
   }
 }
 
-class _DashboardHeader extends StatelessWidget {
-  final int unreadCount;
-  final VoidCallback onNotificationsTap;
-
-  const _DashboardHeader({
-    required this.unreadCount,
-    required this.onNotificationsTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: AppColors.black,
-          size: 26,
-        ),
-        const SizedBox(width: 12),
-        const Icon(
-          Icons.person_outline_rounded,
-          color: AppColors.black,
-          size: 30,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: 'Espace parent\n',
-                  style: AppTextStyles.titleMedium.copyWith(
-                    fontSize: 26,
-                    color: AppColors.black,
-                  ),
-                ),
-                TextSpan(
-                  text: 'Bienvenue,',
-                  style: AppTextStyles.bodyBold.copyWith(
-                    color: AppColors.primaryRed,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            IconButton(
-              onPressed: onNotificationsTap,
-              icon: const Icon(
-                Icons.notifications_none_rounded,
-                color: AppColors.black,
-              ),
-            ),
-            if (unreadCount > 0)
-              Positioned(
-                right: 6,
-                top: 6,
-                child: Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryRed,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    unreadCount > 9 ? '9+' : unreadCount.toString(),
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _PendingAssociationCard extends StatelessWidget {
-  final int pendingCount;
-
-  const _PendingAssociationCard({
-    required this.pendingCount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (pendingCount <= 0) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.black),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.schedule_rounded,
-            color: AppColors.primaryRed,
-            size: 34,
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              '$pendingCount demande d’association en attente\nL’administrateur validera prochainement.',
-              style: AppTextStyles.bodyBold.copyWith(
-                color: AppColors.black,
-                height: 1.35,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _EmptyParentDashboard extends StatelessWidget {
   const _EmptyParentDashboard();
 
@@ -303,9 +177,14 @@ class _EmptyParentDashboard extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
       children: [
-        const _DashboardHeader(
-          unreadCount: 0,
-          onNotificationsTap: _noop,
+        ParentDashboardHeader(
+          parentName: 'Parent',
+          onBack: () {
+            context.go(RouteNames.homeChoice);
+          },
+          onProfileTap: () {
+            context.go(RouteNames.profile);
+          },
         ),
         const SizedBox(height: 80),
         Container(
@@ -340,6 +219,4 @@ class _EmptyParentDashboard extends StatelessWidget {
       ],
     );
   }
-
-  static void _noop() {}
 }
