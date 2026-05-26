@@ -161,7 +161,7 @@ class _BottomNavButtonState extends State<_BottomNavButton> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   widget.item.label,
                   maxLines: 1,
