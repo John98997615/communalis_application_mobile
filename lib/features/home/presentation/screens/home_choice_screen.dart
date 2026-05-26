@@ -1,17 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/router/route_names.dart';
-import '../../../../app/theme/app_colors.dart';
-import '../../../../app/theme/app_radius.dart';
-// import '../../../../app/theme/app_spacing.dart';
-import '../../../../app/theme/app_text_styles.dart';
-import '../../../../shared/widgets/communalis_bottom_nav.dart';
+import 'package:communalis_application_mobile/app/router/route_names.dart';
+import 'package:communalis_application_mobile/app/theme/app_colors.dart';
+import 'package:communalis_application_mobile/app/theme/app_radius.dart';
+import 'package:communalis_application_mobile/app/theme/app_spacing.dart';
+import 'package:communalis_application_mobile/app/theme/app_text_styles.dart';
+import 'package:communalis_application_mobile/features/liaisons/presentation/providers/child_gallery_provider.dart';
+import 'package:communalis_application_mobile/shared/enums/liaison_status.dart';
+import 'package:communalis_application_mobile/shared/widgets/communalis_bottom_nav.dart';
 
-class HomeChoiceScreen extends StatelessWidget {
+class HomeChoiceScreen extends ConsumerStatefulWidget {
   const HomeChoiceScreen({super.key});
 
-  void _onBottomNavTap(BuildContext context, int index) {
+  @override
+  ConsumerState<HomeChoiceScreen> createState() => _HomeChoiceScreenState();
+}
+
+class _HomeChoiceScreenState extends ConsumerState<HomeChoiceScreen> {
+  bool _isCheckingParentSpace = false;
+
+  Future<void> _openParentSpace() async {
+    setState(() => _isCheckingParentSpace = true);
+
+    try {
+      final status = await ref.read(getMyLiaisonStatusUsecaseProvider)();
+
+      if (!mounted) return;
+
+      switch (status) {
+        case LiaisonStatus.approved:
+          context.go(RouteNames.parentDashboard);
+          break;
+
+        case LiaisonStatus.pending:
+          context.go(RouteNames.parentWaitingValidation);
+          break;
+
+        case LiaisonStatus.none:
+        case LiaisonStatus.rejected:
+        case LiaisonStatus.unknown:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Veuillez d’abord sélectionner votre enfant dans le trombinoscope.',
+              ),
+              backgroundColor: AppColors.primaryRed,
+            ),
+          );
+          context.go(RouteNames.childrenGallery);
+          break;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      context.go(RouteNames.childrenGallery);
+    } finally {
+      if (mounted) {
+        setState(() => _isCheckingParentSpace = false);
+      }
+    }
+  }
+
+  void _onBottomNavTap(int index) {
     switch (index) {
       case 0:
         context.go(RouteNames.homeChoice);
@@ -34,7 +85,7 @@ class HomeChoiceScreen extends StatelessWidget {
       backgroundColor: AppColors.primaryYellow,
       bottomNavigationBar: CommunalisBottomNav(
         currentIndex: 0,
-        onTap: (index) => _onBottomNavTap(context, index),
+        onTap: _onBottomNavTap,
       ),
       body: SafeArea(
         child: ListView(
@@ -43,7 +94,7 @@ class HomeChoiceScreen extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: IconButton(
-                onPressed: () => context.go(RouteNames.roleRedirect),
+                onPressed: () => context.go(RouteNames.login),
                 icon: const Icon(
                   Icons.arrow_back_ios_new_rounded,
                   color: AppColors.black,
@@ -51,7 +102,7 @@ class HomeChoiceScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
 
             Text(
               'Bienvenue sur communalis',
@@ -82,6 +133,7 @@ class HomeChoiceScreen extends StatelessWidget {
               buttonText: 'Accéder au Trombinoscope',
               buttonColor: AppColors.primaryYellow,
               buttonTextColor: AppColors.black,
+              isLoading: false,
               onTap: () => context.go(RouteNames.childrenGallery),
             ),
 
@@ -96,7 +148,8 @@ class HomeChoiceScreen extends StatelessWidget {
               buttonText: 'Accéder à l’Espace Parent',
               buttonColor: AppColors.primaryRed,
               buttonTextColor: AppColors.white,
-              onTap: () => context.go(RouteNames.parentDashboard),
+              isLoading: _isCheckingParentSpace,
+              onTap: _openParentSpace,
             ),
           ],
         ),
@@ -113,6 +166,7 @@ class _ChoiceCard extends StatelessWidget {
   final String buttonText;
   final Color buttonColor;
   final Color buttonTextColor;
+  final bool isLoading;
   final VoidCallback onTap;
 
   const _ChoiceCard({
@@ -123,23 +177,25 @@ class _ChoiceCard extends StatelessWidget {
     required this.buttonText,
     required this.buttonColor,
     required this.buttonTextColor,
+    required this.isLoading,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 18),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      padding: const EdgeInsets.fromLTRB(20, 26, 20, 18),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: AppColors.black,
-          width: 1.2,
+          width: 1.3,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: 0.07),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -149,19 +205,19 @@ class _ChoiceCard extends StatelessWidget {
         children: [
           Icon(
             icon,
-            size: 52,
+            size: 54,
             color: iconColor,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.md),
           Text(
             title,
             textAlign: TextAlign.center,
             style: AppTextStyles.titleSmall.copyWith(
-              fontSize: 22,
+              fontSize: 23,
               color: AppColors.black,
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: AppSpacing.lg),
           Text(
             description,
             textAlign: TextAlign.center,
@@ -170,12 +226,12 @@ class _ChoiceCard extends StatelessWidget {
               height: 1.25,
             ),
           ),
-          const SizedBox(height: 26),
+          const SizedBox(height: 28),
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 52,
             child: ElevatedButton(
-              onPressed: onTap,
+              onPressed: isLoading ? null : onTap,
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 backgroundColor: buttonColor,
@@ -188,12 +244,21 @@ class _ChoiceCard extends StatelessWidget {
                   ),
                 ),
               ),
-              child: Text(
-                buttonText,
-                style: AppTextStyles.bodyBold.copyWith(
-                  color: buttonTextColor,
-                ),
-              ),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : Text(
+                      buttonText,
+                      style: AppTextStyles.bodyBold.copyWith(
+                        color: buttonTextColor,
+                      ),
+                    ),
             ),
           ),
         ],
