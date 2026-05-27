@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
 import '../../features/auth/presentation/screens/register_parent_screen.dart';
@@ -14,6 +15,7 @@ import '../../features/child_profile/presentation/screens/child_profile_screen.d
 import '../../features/messaging/presentation/screens/child_chat_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/home/presentation/screens/home_choice_screen.dart';
+import '../../features/messaging/presentation/screens/conversations_screen.dart';
 import 'route_names.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -70,6 +72,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
           return ChildProfileScreen(childId: id);
         },
+      ),
+      GoRoute(
+        path: RouteNames.messaging,
+        builder: (context, state) => const ConversationsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.profile,
+        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
         path: RouteNames.childChat,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../core/widgets/app_error_view.dart';
-import '../../../../../core/widgets/app_loader.dart';
+import '../../../../../app/theme/app_colors.dart';
+import '../../../../../app/theme/app_radius.dart';
+import '../../../../../app/theme/app_spacing.dart';
+import '../../../../../app/theme/app_text_styles.dart';
 import '../providers/child_chat_provider.dart';
 import '../widgets/chat_header.dart';
 import '../widgets/message_bubble.dart';
@@ -33,17 +35,13 @@ class _ChildChatScreenState extends ConsumerState<ChildChatScreen> {
     super.initState();
 
     Future.microtask(() async {
-      final notifier = ref.read(
-        childChatProvider(widget.childId).notifier,
-      );
+      final notifier = ref.read(childChatProvider(widget.childId).notifier);
 
       await notifier.loadMessages();
       notifier.startAutoRefresh();
 
-      _lastKnownMessageCount = ref
-          .read(childChatProvider(widget.childId))
-          .messages
-          .length;
+      _lastKnownMessageCount =
+          ref.read(childChatProvider(widget.childId)).messages.length;
 
       _scrollToBottom();
     });
@@ -51,9 +49,7 @@ class _ChildChatScreenState extends ConsumerState<ChildChatScreen> {
 
   @override
   void dispose() {
-    ref
-        .read(childChatProvider(widget.childId).notifier)
-        .stopAutoRefresh();
+    ref.read(childChatProvider(widget.childId).notifier).stopAutoRefresh();
 
     _messageController.dispose();
     _scrollController.dispose();
@@ -61,28 +57,32 @@ class _ChildChatScreenState extends ConsumerState<ChildChatScreen> {
   }
 
   Future<void> _sendMessage() async {
-    final text = _messageController.text;
+    final text = _messageController.text.trim();
 
-    if (text.trim().isEmpty) return;
+    if (text.isEmpty) return;
 
     _messageController.clear();
 
-    await ref.read(childChatProvider(widget.childId).notifier).sendMessage(
-          text,
-        );
+    await ref.read(childChatProvider(widget.childId).notifier).sendMessage(text);
 
     _scrollToBottom();
   }
 
-  void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 250), () {
-      if (!_scrollController.hasClients) return;
+  Future<void> _refreshMessages() {
+    return ref.read(childChatProvider(widget.childId).notifier).loadMessages();
+  }
 
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 180), () {
+        if (!_scrollController.hasClients) return;
+
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic,
+        );
+      });
     });
   }
 
@@ -96,7 +96,7 @@ class _ChildChatScreenState extends ConsumerState<ChildChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.errorMessage!),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.primaryRed,
           ),
         );
       }
@@ -110,8 +110,12 @@ class _ChildChatScreenState extends ConsumerState<ChildChatScreen> {
     });
 
     return Scaffold(
+      backgroundColor: AppColors.primaryYellow,
       appBar: AppBar(
-        title: const Text('Commentaires'),
+        backgroundColor: AppColors.primaryYellow,
+        elevation: 0,
+        title: const Text('Messagerie'),
+        centerTitle: false,
       ),
       body: SafeArea(
         child: Column(
@@ -120,45 +124,47 @@ class _ChildChatScreenState extends ConsumerState<ChildChatScreen> {
               title: widget.childName,
               subtitle: state.isRefreshing
                   ? 'Synchronisation en cours...'
-                  : 'Discussion Parent ↔ Administrateur',
+                  : 'Discussion Parent ↔ Administration',
             ),
             Expanded(
               child: Builder(
                 builder: (context) {
                   if (state.isLoading && state.messages.isEmpty) {
-                    return const AppLoader(
-                      message: 'Chargement des commentaires...',
-                    );
+                    return const _ChatSkeleton();
                   }
 
                   if (state.errorMessage != null && state.messages.isEmpty) {
-                    return AppErrorView(
-                      message: state.errorMessage!,
-                      onRetry: () {
-                        ref.read(provider.notifier).loadMessages();
-                      },
+                    return _ChatStateCard(
+                      icon: Icons.wifi_off_rounded,
+                      title: 'Impossible de charger la discussion',
+                      message:
+                          'Veuillez vérifier votre connexion puis réessayer.',
+                      actionLabel: 'Réessayer',
+                      onAction: _refreshMessages,
                     );
                   }
 
                   if (state.messages.isEmpty) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Text(
-                          'Aucun commentaire pour le moment. Envoyez le premier message à l’administrateur.',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
+                    return const _ChatStateCard(
+                      icon: Icons.forum_outlined,
+                      title: 'Aucun message pour le moment',
+                      message:
+                          'Envoyez votre premier message à l’administration concernant votre enfant.',
                     );
                   }
 
                   return RefreshIndicator(
-                    onRefresh: () {
-                      return ref.read(provider.notifier).loadMessages();
-                    },
+                    color: AppColors.primaryRed,
+                    onRefresh: _refreshMessages,
                     child: ListView.builder(
                       controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.md,
+                        AppSpacing.lg,
+                        AppSpacing.xl,
+                      ),
                       itemCount: state.messages.length,
                       itemBuilder: (context, index) {
                         final message = state.messages[index];
@@ -176,6 +182,141 @@ class _ChildChatScreenState extends ConsumerState<ChildChatScreen> {
               onSend: _sendMessage,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatStateCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  const _ChatStateCard({
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      children: [
+        const SizedBox(height: AppSpacing.xl),
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            border: Border.all(
+              color: AppColors.black,
+              width: 1.2,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: AppColors.primaryRed,
+                size: 52,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.titleSmall.copyWith(
+                  color: AppColors.black,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.darkGrey,
+                  height: 1.35,
+                ),
+              ),
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: AppSpacing.xl),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: onAction,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(
+                      actionLabel!,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      backgroundColor: AppColors.primaryRed,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        side: const BorderSide(
+                          color: AppColors.black,
+                          width: 1.1,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ChatSkeleton extends StatelessWidget {
+  const _ChatSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      children: const [
+        _SkeletonBubble(isMe: false),
+        _SkeletonBubble(isMe: true),
+        _SkeletonBubble(isMe: false),
+        _SkeletonBubble(isMe: true),
+      ],
+    );
+  }
+}
+
+class _SkeletonBubble extends StatelessWidget {
+  final bool isMe;
+
+  const _SkeletonBubble({
+    required this.isMe,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.62,
+        height: 58,
+        margin: const EdgeInsets.only(bottom: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.70),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: AppColors.black.withValues(alpha: 0.18),
+          ),
         ),
       ),
     );
