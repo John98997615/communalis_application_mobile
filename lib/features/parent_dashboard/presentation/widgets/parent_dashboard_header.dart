@@ -32,7 +32,7 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 450),
+      duration: const Duration(milliseconds: 420),
     );
 
     _fadeAnimation = CurvedAnimation(
@@ -41,13 +41,10 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader>
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, -0.12),
+      begin: const Offset(0, -0.08),
       end: Offset.zero,
     ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutCubic,
-      ),
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
 
     _controller.forward();
@@ -60,11 +57,8 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader>
   }
 
   String get _displayName {
-    final name = widget.parentName.trim();
-
-    if (name.isEmpty) return 'Parent';
-
-    return name;
+    final value = widget.parentName.trim();
+    return value.isEmpty ? 'Parent' : value;
   }
 
   @override
@@ -83,7 +77,6 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader>
                 AppSpacing.md,
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   IconButton(
                     onPressed: widget.onBack,
@@ -94,11 +87,13 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader>
                     ),
                   ),
 
+                  const SizedBox(width: AppSpacing.xs),
+
                   GestureDetector(
                     onTap: widget.onProfileTap,
                     child: Container(
-                      width: 42,
-                      height: 42,
+                      width: 46,
+                      height: 46,
                       decoration: BoxDecoration(
                         color: AppColors.primaryYellow,
                         shape: BoxShape.circle,
@@ -115,7 +110,7 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader>
                     ),
                   ),
 
-                  const SizedBox(width: 10),
+                  const SizedBox(width: AppSpacing.md),
 
                   Expanded(
                     child: Column(
@@ -127,34 +122,37 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader>
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.titleMedium.copyWith(
                             color: AppColors.black,
-                            fontSize: 25,
+                            fontSize: 26,
                             height: 1.05,
                           ),
                         ),
-                        const SizedBox(height: 3),
-                        RichText(
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'Bienvenue,\n',
+
+                        const SizedBox(height: AppSpacing.xs),
+
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              'Bienvenue, ',
+                              style: AppTextStyles.bodyBold.copyWith(
+                                color: AppColors.primaryRed,
+                                fontStyle: FontStyle.italic,
+                                height: 1,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                _displayName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: AppTextStyles.bodyBold.copyWith(
-                                  color: AppColors.primaryRed,
-                                  fontStyle: FontStyle.italic,
-                                  height: 1.05,
-                                ),
-                              ),
-                              TextSpan(
-                                text: _displayName,
-                                style: AppTextStyles.body.copyWith(
                                   color: AppColors.black,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.05,
+                                  height: 1,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

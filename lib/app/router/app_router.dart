@@ -16,6 +16,8 @@ import '../../features/messaging/presentation/screens/child_chat_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/home/presentation/screens/home_choice_screen.dart';
 import '../../features/messaging/presentation/screens/conversations_screen.dart';
+import '../../features/attendance/presentation/screens/student_attendance_screen.dart';
+import '../../features/grades/presentation/screens/student_grades_screen.dart';
 import 'route_names.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -88,6 +90,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final childName = state.uri.queryParameters['name'] ?? 'Enfant';
 
           return ChildChatScreen(childId: childId, childName: childName);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.studentAttendance,
+        builder: (context, state) {
+          final childId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+
+          return StudentAttendanceScreen(childId: childId);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.studentGrades,
+        builder: (context, state) {
+          final childId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+
+          return StudentGradesScreen(childId: childId);
         },
       ),
       GoRoute(

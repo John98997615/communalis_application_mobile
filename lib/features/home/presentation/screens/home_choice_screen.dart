@@ -9,8 +9,6 @@ import 'package:communalis_application_mobile/app/theme/app_spacing.dart';
 import 'package:communalis_application_mobile/app/theme/app_text_styles.dart';
 import 'package:communalis_application_mobile/features/liaisons/presentation/providers/child_gallery_provider.dart';
 import 'package:communalis_application_mobile/shared/enums/liaison_status.dart';
-import 'package:communalis_application_mobile/shared/widgets/communalis_bottom_nav.dart';
-
 class HomeChoiceScreen extends ConsumerStatefulWidget {
   const HomeChoiceScreen({super.key});
 
@@ -62,31 +60,10 @@ class _HomeChoiceScreenState extends ConsumerState<HomeChoiceScreen> {
     }
   }
 
-  void _onBottomNavTap(int index) {
-    switch (index) {
-      case 0:
-        context.go(RouteNames.homeChoice);
-        break;
-      case 1:
-        context.go(RouteNames.messaging);
-        break;
-      case 2:
-        context.go(RouteNames.notifications);
-        break;
-      case 3:
-        context.go(RouteNames.profile);
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primaryYellow,
-      bottomNavigationBar: CommunalisBottomNav(
-        currentIndex: 0,
-        onTap: _onBottomNavTap,
-      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(28, 18, 28, 28),

@@ -13,6 +13,8 @@ import '../../../../../app/theme/app_spacing.dart';
 import '../../../../../app/theme/app_text_styles.dart';
 import '../../../../../features/notifications/presentation/providers/notifications_provider.dart';
 import '../../../../../shared/widgets/communalis_bottom_nav.dart';
+import '../../../../../features/liaisons/presentation/providers/child_gallery_provider.dart';
+import '../../../../../shared/enums/liaison_status.dart';
 import '../providers/parent_dashboard_provider.dart';
 import '../widgets/parent_child_card.dart';
 
@@ -29,11 +31,31 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
   void initState() {
     super.initState();
 
-    Future.microtask(() async {
-      await ref.read(parentDashboardProvider.notifier).loadDashboard();
-      await ref.read(notificationsProvider.notifier).loadNotifications();
-      ref.read(notificationsProvider.notifier).startAutoRefresh();
-    });
+    Future.microtask(_secureLoadDashboard);
+  }
+
+  Future<void> _secureLoadDashboard() async {
+    final status = await ref.read(getMyLiaisonStatusUsecaseProvider)();
+
+    if (!mounted) return;
+
+    switch (status) {
+      case LiaisonStatus.approved:
+        await ref.read(parentDashboardProvider.notifier).loadDashboard();
+        await ref.read(notificationsProvider.notifier).loadNotifications();
+        ref.read(notificationsProvider.notifier).startAutoRefresh();
+        return;
+
+      case LiaisonStatus.pending:
+        context.go(RouteNames.parentWaitingValidation);
+        return;
+
+      case LiaisonStatus.none:
+      case LiaisonStatus.rejected:
+      case LiaisonStatus.unknown:
+        context.go(RouteNames.childrenGallery);
+        return;
+    }
   }
 
   @override
@@ -43,6 +65,19 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
   }
 
   Future<void> _refreshDashboard() async {
+    final status = await ref.read(getMyLiaisonStatusUsecaseProvider)();
+
+    if (!mounted) return;
+
+    if (status != LiaisonStatus.approved) {
+      context.go(
+        status == LiaisonStatus.pending
+            ? RouteNames.parentWaitingValidation
+            : RouteNames.childrenGallery,
+      );
+      return;
+    }
+
     await ref.read(parentDashboardProvider.notifier).loadDashboard();
     await ref.read(notificationsProvider.notifier).loadNotifications();
   }
@@ -107,7 +142,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
                 children: [
                   ParentDashboardHeader(
-                    parentName: 'Parent',
+                    parentName: dashboard.parentName,
                     onBack: () {
                       context.go(RouteNames.homeChoice);
                     },
@@ -118,21 +153,46 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
 
                   const SizedBox(height: AppSpacing.lg),
 
-                  const PendingAssociationCard(pendingCount: 0),
+                  if (dashboard.pendingAssociationCount > 0) ...[
+                    PendingAssociationCard(
+                      pendingCount: dashboard.pendingAssociationCount,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
 
                   const SizedBox(height: AppSpacing.lg),
 
                   Row(
                     children: [
-                      Text(
-                        'Mes enfants',
-                        style: AppTextStyles.titleSmall.copyWith(fontSize: 20),
+                      Expanded(
+                        child: Text(
+                          'Mes enfants',
+                          style: AppTextStyles.titleLarge.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                       ),
-                      const Spacer(),
-                      Text(
-                        '${dashboard.totalChildren}',
-                        style: AppTextStyles.bodyBold.copyWith(
-                          color: AppColors.primaryRed,
+
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryRed.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: AppColors.primaryRed.withValues(alpha: 0.20),
+                          ),
+                        ),
+                        child: Text(
+                          dashboard.children.length <= 1
+                              ? '1 enfant'
+                              : '${dashboard.children.length} enfants',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.primaryRed,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ],
@@ -154,6 +214,17 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
                       child: child,
                       onTap: () {
                         context.go(RouteNames.childProfilePath(child.id));
+                      },
+                      onAttendanceTap: () {
+                        context.go(RouteNames.studentAttendancePath(child.id));
+                      },
+                      onGradesTap: () {
+                        context.go(RouteNames.studentGradesPath(child.id));
+                      },
+                      onCommentsTap: () {
+                        context.go(
+                          RouteNames.childChatPath(child.id, child.fullName),
+                        );
                       },
                     ),
                   ),

@@ -31,6 +31,17 @@ class RouteNames {
     return '/child-chat/$childId?name=${Uri.encodeComponent(childName)}';
   }
 
+  static const studentAttendance = '/student-attendance/:id';
+  static const studentGrades = '/student-grades/:id';
+
+  static String studentAttendancePath(int childId) {
+    return '/student-attendance/$childId';
+  }
+
+  static String studentGradesPath(int childId) {
+    return '/student-grades/$childId';
+  }
+
   static const grades = '/grades';
   static const attendance = '/attendance';
   static const messaging = '/messaging';

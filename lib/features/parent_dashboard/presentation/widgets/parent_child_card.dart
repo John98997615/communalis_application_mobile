@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../../app/router/route_names.dart';
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../app/theme/app_radius.dart';
 import '../../../../../app/theme/app_spacing.dart';
@@ -12,7 +10,18 @@ class ParentChildCard extends StatelessWidget {
   final ParentChildSummaryEntity child;
   final VoidCallback? onTap;
 
-  const ParentChildCard({super.key, required this.child, this.onTap});
+  final VoidCallback? onAttendanceTap;
+  final VoidCallback? onGradesTap;
+  final VoidCallback? onCommentsTap;
+
+  const ParentChildCard({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.onAttendanceTap,
+    this.onGradesTap,
+    this.onCommentsTap,
+  });
 
   String get _ageText {
     if (child.birthDate == null || child.birthDate!.trim().isEmpty) {
@@ -83,9 +92,6 @@ class ParentChildCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final averageText = child.average == null
-        ? '--'
-        : child.average!.toStringAsFixed(1);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -175,43 +181,44 @@ class ParentChildCard extends StatelessWidget {
 
                 const SizedBox(height: AppSpacing.md),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: _MetricBox(
-                        title: 'Moyenne',
-                        value: averageText,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryYellow.withValues(alpha: 0.28),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    border: Border.all(
+                      color: AppColors.black.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.insights_rounded,
+                        color: AppColors.black,
+                        size: 20,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          'Suivi scolaire disponible',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.black,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      _PerformanceBadge(
+                        label: _performanceLabel,
                         color: _performanceColor,
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: _MetricBox(
-                        title: 'Présences',
-                        value: '${child.latestAttendance.length}',
-                        color: AppColors.info,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: _MetricBox(
-                        title: 'Messages',
-                        value: '${child.latestComments.length}',
-                        color: AppColors.primaryRed,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: AppSpacing.md),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: _PerformanceBadge(
-                    label: _performanceLabel,
-                    color: _performanceColor,
-                  ),
-                ),
 
                 const SizedBox(height: AppSpacing.lg),
 
@@ -221,9 +228,7 @@ class ParentChildCard extends StatelessWidget {
                       child: _QuickActionButton(
                         icon: Icons.event_available_outlined,
                         label: 'Présences',
-                        onTap: () {
-                          context.go(RouteNames.childProfilePath(child.id));
-                        },
+                        onTap: onAttendanceTap ?? () {},
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -231,9 +236,7 @@ class ParentChildCard extends StatelessWidget {
                       child: _QuickActionButton(
                         icon: Icons.school_outlined,
                         label: 'Notes',
-                        onTap: () {
-                          context.go(RouteNames.childProfilePath(child.id));
-                        },
+                        onTap: onGradesTap ?? () {},
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -241,11 +244,7 @@ class ParentChildCard extends StatelessWidget {
                       child: _QuickActionButton(
                         icon: Icons.chat_bubble_outline,
                         label: 'Commentaires',
-                        onTap: () {
-                          context.go(
-                            RouteNames.childChatPath(child.id, child.fullName),
-                          );
-                        },
+                        onTap: onCommentsTap ?? () {},
                       ),
                     ),
                   ],
@@ -333,43 +332,6 @@ class _InfoChip extends StatelessWidget {
               color: AppColors.black,
               fontWeight: FontWeight.w800,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MetricBox extends StatelessWidget {
-  final String title;
-  final String value;
-  final Color color;
-
-  const _MetricBox({
-    required this.title,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: AppTextStyles.bodyBold.copyWith(color: color, fontSize: 17),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.caption.copyWith(color: AppColors.black),
           ),
         ],
       ),
