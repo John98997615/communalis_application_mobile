@@ -23,6 +23,30 @@ class ParentChildCard extends StatelessWidget {
     this.onCommentsTap,
   });
 
+  String get _classLabel {
+    final value = child.className?.trim();
+
+    if (value == null || value.isEmpty || value.toUpperCase() == 'NC') {
+      return 'Classe : Classe non renseignée';
+    }
+
+    return value;
+  }
+
+  String get _matriculeLabel {
+    final value = child.matricule.trim();
+
+    if (value.isEmpty) {
+      return 'Matricule : indisponible';
+    }
+
+    final cleanValue = value
+        .replaceFirst(RegExp(r'^STD', caseSensitive: false), '')
+        .trim();
+
+    return 'Matricule : #$cleanValue';
+  }
+
   String get _ageText {
     if (child.birthDate == null || child.birthDate!.trim().isEmpty) {
       return 'Âge indisponible';
@@ -92,7 +116,6 @@ class ParentChildCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: Material(
@@ -137,10 +160,7 @@ class ParentChildCard extends StatelessWidget {
                           ),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
-                            (child.className != null &&
-                                    child.className!.trim().isNotEmpty)
-                                ? child.className!
-                                : 'Classe non renseignée',
+                            _classLabel,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.caption.copyWith(
@@ -152,11 +172,12 @@ class ParentChildCard extends StatelessWidget {
                           Text(
                             child.matricule.trim().isEmpty
                                 ? 'Matricule indisponible'
-                                : 'Matricule : ${child.matricule}',
+                                : _matriculeLabel,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.grey,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],

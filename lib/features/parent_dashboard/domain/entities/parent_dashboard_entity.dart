@@ -6,6 +6,7 @@ class ParentDashboardEntity {
   final String parentName;
   final int pendingAssociationCount;
   final List<ParentChildSummaryEntity> children;
+  final String? parentPhotoUrl;
 
   const ParentDashboardEntity({
     required this.parentId,
@@ -13,6 +14,7 @@ class ParentDashboardEntity {
     required this.parentName,
     required this.pendingAssociationCount,
     required this.children,
+    this.parentPhotoUrl,
   });
 
   bool get hasChildren => children.isNotEmpty;

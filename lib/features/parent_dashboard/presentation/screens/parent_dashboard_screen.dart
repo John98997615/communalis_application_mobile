@@ -143,6 +143,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
                 children: [
                   ParentDashboardHeader(
                     parentName: dashboard.parentName,
+                    parentPhotoUrl: dashboard.parentPhotoUrl,
                     onBack: () {
                       context.go(RouteNames.homeChoice);
                     },

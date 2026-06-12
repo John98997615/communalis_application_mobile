@@ -5,18 +5,17 @@ import '../../../../../app/theme/app_radius.dart';
 import '../../../../../app/theme/app_spacing.dart';
 import '../../../../../app/theme/app_text_styles.dart';
 import '../../domain/entities/message_entity.dart';
+import '../../../../../shared/utils/date_formatter.dart';
 
 class MessageBubble extends StatelessWidget {
   final MessageEntity message;
 
-  const MessageBubble({
-    super.key,
-    required this.message,
-  });
+  const MessageBubble({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
     final isMe = message.isFromParent;
+    final formattedDate = DateFormatter.formatChatDate(message.createdAt);
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -51,8 +50,9 @@ class MessageBubble extends StatelessWidget {
           ],
         ),
         child: Column(
-          crossAxisAlignment:
-              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             Text(
               message.message.trim().isEmpty
@@ -64,14 +64,13 @@ class MessageBubble extends StatelessWidget {
                 height: 1.35,
               ),
             ),
-            if (message.createdAt != null &&
-                message.createdAt!.trim().isNotEmpty) ...[
+            if (formattedDate.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.xs),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    message.createdAt!,
+                    formattedDate,
                     style: AppTextStyles.caption.copyWith(
                       color: isMe
                           ? AppColors.white.withValues(alpha: 0.82)

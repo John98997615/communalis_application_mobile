@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../app/theme/app_spacing.dart';
@@ -17,10 +18,7 @@ import '../widgets/child_progress_section.dart';
 class ChildProfileScreen extends ConsumerStatefulWidget {
   final int childId;
 
-  const ChildProfileScreen({
-    super.key,
-    required this.childId,
-  });
+  const ChildProfileScreen({super.key, required this.childId});
 
   @override
   ConsumerState<ChildProfileScreen> createState() => _ChildProfileScreenState();
@@ -35,9 +33,9 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
   }
 
   Future<void> _loadProfile() {
-    return ref.read(childProfileProvider.notifier).loadChildProfile(
-          childId: widget.childId,
-        );
+    return ref
+        .read(childProfileProvider.notifier)
+        .loadChildProfile(childId: widget.childId);
   }
 
   @override
@@ -47,7 +45,35 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.primaryYellow,
       appBar: AppBar(
-        title: const Text('Profil enfant'),
+        automaticallyImplyLeading: false,
+        backgroundColor: AppColors.primaryYellow,
+        elevation: 0,
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            IconButton(
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/parent/dashboard');
+                }
+              },
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Text(
+              'Profil enfant',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: AppColors.black,
+              ),
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -60,9 +86,7 @@ class _ChildProfileScreenState extends ConsumerState<ChildProfileScreen> {
               }
 
               if (state.errorMessage != null && state.childProfile == null) {
-                return ChildProfileErrorView(
-                  onRetry: _loadProfile,
-                );
+                return ChildProfileErrorView(onRetry: _loadProfile);
               }
 
               final child = state.childProfile;

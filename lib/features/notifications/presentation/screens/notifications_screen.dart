@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+import '../../../../../app/router/route_names.dart';
+
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../app/theme/app_spacing.dart';
 import '../../../../../app/theme/app_text_styles.dart';
@@ -22,8 +25,7 @@ class NotificationsScreen extends ConsumerStatefulWidget {
       _NotificationsScreenState();
 }
 
-class _NotificationsScreenState
-    extends ConsumerState<NotificationsScreen> {
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   int selectedFilter = 0;
 
   @override
@@ -49,13 +51,10 @@ class _NotificationsScreenState
     final state = ref.watch(notificationsProvider);
 
     ref.listen(notificationsProvider, (previous, next) {
-      if (next.errorMessage != null &&
-          next.errorMessage!.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.errorMessage!),
-          ),
-        );
+      if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
       }
     });
 
@@ -65,9 +64,7 @@ class _NotificationsScreenState
         .where((e) => !e.isRead)
         .toList();
 
-    final readNotifications = allNotifications
-        .where((e) => e.isRead)
-        .toList();
+    final readNotifications = allNotifications.where((e) => e.isRead).toList();
 
     final filteredNotifications = switch (selectedFilter) {
       1 => unreadNotifications,
@@ -78,62 +75,58 @@ class _NotificationsScreenState
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: AppColors.primaryYellow,
         elevation: 0,
-        titleSpacing: 20,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        titleSpacing: 0,
+        title: Row(
           children: [
-            Text(
-              'Notifications',
-              style: AppTextStyles.titleLarge,
+            IconButton(
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(RouteNames.parentDashboard);
+                }
+              },
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.black,
+              ),
             ),
-            Text(
-              '${unreadNotifications.length} non lue(s)',
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.primaryRed,
-                fontWeight: FontWeight.w700,
+            const Text(
+              'Notifications',
+              style: TextStyle(
+                color: AppColors.black,
+                fontWeight: FontWeight.w900,
               ),
             ),
           ],
         ),
         actions: [
-          if (allNotifications.isNotEmpty)
+          if (state.notifications.isNotEmpty)
             TextButton(
               onPressed: state.isUpdating
                   ? null
                   : () {
-                      ref
-                          .read(notificationsProvider.notifier)
-                          .markAllAsRead();
+                      ref.read(notificationsProvider.notifier).markAllAsRead();
                     },
-              child: Text(
-                'Tout lire',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.primaryRed,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              child: const Text('Tout lire'),
             ),
         ],
       ),
 
       body: Builder(
         builder: (context) {
-          if (state.isLoading &&
-              state.notifications.isEmpty) {
-            return const AppLoader(
-              message: 'Chargement des notifications...',
-            );
+          if (state.isLoading && state.notifications.isEmpty) {
+            return const AppLoader(message: 'Chargement des notifications...');
           }
 
-          if (state.errorMessage != null &&
-              state.notifications.isEmpty) {
+          if (state.errorMessage != null && state.notifications.isEmpty) {
             return AppErrorView(
               message: state.errorMessage!,
               onRetry: () {
-                ref
-                    .read(notificationsProvider.notifier)
-                    .loadNotifications();
+                ref.read(notificationsProvider.notifier).loadNotifications();
               },
             );
           }
@@ -168,8 +161,7 @@ class _NotificationsScreenState
                         Icon(
                           Icons.notifications_off_outlined,
                           size: 72,
-                          color: AppColors.darkGrey
-                              .withValues(alpha: 0.40),
+                          color: AppColors.darkGrey.withValues(alpha: 0.40),
                         ),
                         const SizedBox(height: AppSpacing.md),
                         Text(
@@ -190,24 +182,17 @@ class _NotificationsScreenState
 
                 ...filteredNotifications.map(
                   (notification) => Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: AppSpacing.md,
-                    ),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: NotificationTile(
                       notification: notification,
                       onTap: () async {
                         await ref
-                            .read(
-                              notificationsProvider.notifier,
-                            )
+                            .read(notificationsProvider.notifier)
                             .markAsRead(notification.id);
 
                         if (!context.mounted) return;
 
-                        NotificationNavigation.open(
-                          context,
-                          notification,
-                        );
+                        NotificationNavigation.open(context, notification);
                       },
                     ),
                   ),

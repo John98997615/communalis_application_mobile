@@ -9,6 +9,7 @@ import 'package:communalis_application_mobile/app/theme/app_spacing.dart';
 import 'package:communalis_application_mobile/app/theme/app_text_styles.dart';
 import 'package:communalis_application_mobile/features/liaisons/presentation/providers/child_gallery_provider.dart';
 import 'package:communalis_application_mobile/shared/enums/liaison_status.dart';
+
 class HomeChoiceScreen extends ConsumerStatefulWidget {
   const HomeChoiceScreen({super.key});
 
@@ -79,27 +80,40 @@ class _HomeChoiceScreenState extends ConsumerState<HomeChoiceScreen> {
               ),
             ),
 
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
 
-            Text(
-              'Bienvenue sur communalis',
-              style: AppTextStyles.titleSmall.copyWith(
-                color: AppColors.primaryRed,
-                fontStyle: FontStyle.italic,
-                fontSize: 22,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'Bienvenue sur Communalis',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.titleSmall.copyWith(
+                      color: AppColors.primaryRed,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      height: 1.15,
+                    ),
+                  ),
+
+                  const SizedBox(height: AppSpacing.sm),
+
+                  Text(
+                    'Veuillez choisir votre espace pour continuer',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodyBold.copyWith(
+                      color: AppColors.black,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(height: 6),
-
-            Text(
-              'Veuillez choisir votre espace pour continuer',
-              style: AppTextStyles.bodyBold.copyWith(
-                color: AppColors.black,
-              ),
-            ),
-
-            const SizedBox(height: 32),
+            const SizedBox(height: 34),
 
             _ChoiceCard(
               icon: Icons.groups_2_outlined,
@@ -166,10 +180,7 @@ class _ChoiceCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          color: AppColors.black,
-          width: 1.3,
-        ),
+        border: Border.all(color: AppColors.black, width: 1.3),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.07),
@@ -180,11 +191,7 @@ class _ChoiceCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            size: 54,
-            color: iconColor,
-          ),
+          Icon(icon, size: 54, color: iconColor),
           const SizedBox(height: AppSpacing.md),
           Text(
             title,
@@ -215,10 +222,7 @@ class _ChoiceCard extends StatelessWidget {
                 foregroundColor: buttonTextColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadius.pill),
-                  side: const BorderSide(
-                    color: AppColors.black,
-                    width: 1.2,
-                  ),
+                  side: const BorderSide(color: AppColors.black, width: 1.2),
                 ),
               ),
               child: isLoading

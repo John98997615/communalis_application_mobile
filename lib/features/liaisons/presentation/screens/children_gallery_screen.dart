@@ -31,6 +31,8 @@ class _ChildrenGalleryScreenState extends ConsumerState<ChildrenGalleryScreen> {
     super.initState();
 
     Future.microtask(() {
+      if (!mounted) return;
+
       ref.read(childGalleryProvider.notifier).loadChildren();
     });
   }
@@ -42,9 +44,9 @@ class _ChildrenGalleryScreenState extends ConsumerState<ChildrenGalleryScreen> {
   }
 
   Future<void> _refresh() {
-    return ref.read(childGalleryProvider.notifier).loadChildren(
-          search: _searchController.text.trim(),
-        );
+    return ref
+        .read(childGalleryProvider.notifier)
+        .loadChildren(search: _searchController.text.trim());
   }
 
   Future<void> _submitRequest() async {
@@ -110,10 +112,7 @@ class _ChildrenGalleryScreenState extends ConsumerState<ChildrenGalleryScreen> {
             isLoading: state.isSubmitting,
             onSubmit: state.selectedChildIds.isEmpty ? null : _submitRequest,
           ),
-          CommunalisBottomNav(
-            currentIndex: 0,
-            onTap: _onBottomNavTap,
-          ),
+          CommunalisBottomNav(currentIndex: 0, onTap: _onBottomNavTap),
         ],
       ),
       body: SafeArea(
@@ -138,9 +137,9 @@ class _ChildrenGalleryScreenState extends ConsumerState<ChildrenGalleryScreen> {
               ChildrenSearchBar(
                 controller: _searchController,
                 onChanged: (value) {
-                  ref.read(childGalleryProvider.notifier).loadChildren(
-                        search: value.trim(),
-                      );
+                  ref
+                      .read(childGalleryProvider.notifier)
+                      .loadChildren(search: value.trim());
                 },
                 onClear: () {
                   _searchController.clear();
@@ -153,9 +152,7 @@ class _ChildrenGalleryScreenState extends ConsumerState<ChildrenGalleryScreen> {
               if (state.isLoading && state.children.isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 60),
-                  child: AppLoader(
-                    message: 'Chargement du trombinoscope...',
-                  ),
+                  child: AppLoader(message: 'Chargement du trombinoscope...'),
                 )
               else if (state.errorMessage != null && state.children.isEmpty)
                 Padding(
@@ -182,9 +179,9 @@ class _ChildrenGalleryScreenState extends ConsumerState<ChildrenGalleryScreen> {
                   itemCount: state.children.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 2.15,
+                    mainAxisSpacing: AppSpacing.md,
+                    crossAxisSpacing: AppSpacing.md,
+                    childAspectRatio: 1.85,
                   ),
                   itemBuilder: (context, index) {
                     final child = state.children[index];
@@ -193,6 +190,24 @@ class _ChildrenGalleryScreenState extends ConsumerState<ChildrenGalleryScreen> {
                       child: child,
                       isSelected: state.selectedChildIds.contains(child.id),
                       onTap: () {
+                        if (!child.canRequestLiaison) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                child.isPending
+                                    ? 'Une demande est déjà en attente pour cet enfant.'
+                                    : child.isApproved
+                                    ? 'Cet enfant est déjà associé à votre compte.'
+                                    : child.isRejected
+                                    ? 'Cette demande a été refusée. Vous pouvez refaire une demande si nécessaire.'
+                                    : 'La demande n’est pas disponible pour cet enfant.',
+                              ),
+                              backgroundColor: AppColors.primaryRed,
+                            ),
+                          );
+                          return;
+                        }
+
                         ref
                             .read(childGalleryProvider.notifier)
                             .toggleChildSelection(child.id);

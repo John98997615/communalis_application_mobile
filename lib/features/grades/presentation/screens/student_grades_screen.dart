@@ -2,6 +2,9 @@ import 'package:communalis_application_mobile/features/child_profile/domain/enti
 import 'package:communalis_application_mobile/features/child_profile/presentation/providers/child_profile_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../../app/router/route_names.dart';
+import '../../../../../shared/utils/child_display_formatter.dart';
 
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../app/theme/app_radius.dart';
@@ -11,10 +14,7 @@ import '../../../../../app/theme/app_text_styles.dart';
 class StudentGradesScreen extends ConsumerStatefulWidget {
   final int childId;
 
-  const StudentGradesScreen({
-    super.key,
-    required this.childId,
-  });
+  const StudentGradesScreen({super.key, required this.childId});
 
   @override
   ConsumerState<StudentGradesScreen> createState() =>
@@ -103,9 +103,35 @@ class _StudentGradesScreenState extends ConsumerState<StudentGradesScreen> {
     return Scaffold(
       backgroundColor: AppColors.primaryYellow,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.primaryYellow,
         elevation: 0,
-        title: const Text('Notes'),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            IconButton(
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(RouteNames.parentDashboard);
+                }
+              },
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Text(
+              'Notes de l’enfant',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: AppColors.black,
+              ),
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -121,8 +147,7 @@ class _StudentGradesScreenState extends ConsumerState<StudentGradesScreen> {
                 return _GradesStateCard(
                   icon: Icons.wifi_off_rounded,
                   title: 'Impossible de charger les notes',
-                  message:
-                      'Veuillez vérifier votre connexion puis réessayer.',
+                  message: 'Veuillez vérifier votre connexion puis réessayer.',
                   actionLabel: 'Réessayer',
                   onAction: _loadGrades,
                 );
@@ -154,10 +179,7 @@ class _StudentGradesScreenState extends ConsumerState<StudentGradesScreen> {
 
                   const SizedBox(height: AppSpacing.lg),
 
-                  _GradesSummary(
-                    grades: grades,
-                    average: average,
-                  ),
+                  _GradesSummary(grades: grades, average: average),
 
                   const SizedBox(height: AppSpacing.lg),
 
@@ -225,9 +247,7 @@ class _StudentGradesScreenState extends ConsumerState<StudentGradesScreen> {
                           'Aucune note ne correspond à votre recherche ou filtre.',
                     )
                   else
-                    ...filteredGrades.map(
-                      (grade) => _GradeCard(grade: grade),
-                    ),
+                    ...filteredGrades.map((grade) => _GradeCard(grade: grade)),
                 ],
               );
             },
@@ -241,9 +261,7 @@ class _StudentGradesScreenState extends ConsumerState<StudentGradesScreen> {
 class _GradesHeader extends StatelessWidget {
   final ChildProfileEntity child;
 
-  const _GradesHeader({
-    required this.child,
-  });
+  const _GradesHeader({required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -273,9 +291,7 @@ class _GradesHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  child.className?.trim().isNotEmpty == true
-                      ? child.className!
-                      : 'Classe non renseignée',
+                  ChildDisplayFormatter.formatClass(child.className),
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.darkGrey,
                     fontWeight: FontWeight.w800,
@@ -283,12 +299,8 @@ class _GradesHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  child.matricule.trim().isEmpty
-                      ? 'Matricule indisponible'
-                      : 'Matricule : ${child.matricule}',
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.grey,
-                  ),
+                  ChildDisplayFormatter.formatMatricule(child.matricule),
+                  style: AppTextStyles.caption.copyWith(color: AppColors.grey),
                 ),
               ],
             ),
@@ -303,23 +315,20 @@ class _GradesSummary extends StatelessWidget {
   final List<ChildGradeEntity> grades;
   final double? average;
 
-  const _GradesSummary({
-    required this.grades,
-    required this.average,
-  });
+  const _GradesSummary({required this.grades, required this.average});
 
   int get excellentCount =>
       grades.where((grade) => (grade.value ?? -1) >= 14).length;
 
   int get averageCount => grades.where((grade) {
-        final value = grade.value;
-        return value != null && value >= 10 && value < 14;
-      }).length;
+    final value = grade.value;
+    return value != null && value >= 10 && value < 14;
+  }).length;
 
   int get lowCount => grades.where((grade) {
-        final value = grade.value;
-        return value != null && value < 10;
-      }).length;
+    final value = grade.value;
+    return value != null && value < 10;
+  }).length;
 
   @override
   Widget build(BuildContext context) {
@@ -362,9 +371,7 @@ class _GradesSummary extends StatelessWidget {
 class _AverageCard extends StatelessWidget {
   final double? average;
 
-  const _AverageCard({
-    required this.average,
-  });
+  const _AverageCard({required this.average});
 
   @override
   Widget build(BuildContext context) {
@@ -389,9 +396,7 @@ class _AverageCard extends StatelessWidget {
             children: [
               Text(
                 'Moyenne générale',
-                style: AppTextStyles.bodyBold.copyWith(
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.bodyBold.copyWith(color: AppColors.black),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
@@ -567,9 +572,7 @@ class _GradesFilters extends StatelessWidget {
 class _GradeCard extends StatelessWidget {
   final ChildGradeEntity grade;
 
-  const _GradeCard({
-    required this.grade,
-  });
+  const _GradeCard({required this.grade});
 
   Color get _color {
     final value = grade.value;
@@ -606,10 +609,7 @@ class _GradeCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          color: _color.withValues(alpha: 0.75),
-          width: 1.1,
-        ),
+        border: Border.all(color: _color.withValues(alpha: 0.75), width: 1.1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -718,12 +718,7 @@ class _SummaryBox extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text(
-            value,
-            style: AppTextStyles.bodyBold.copyWith(
-              color: color,
-            ),
-          ),
+          Text(value, style: AppTextStyles.bodyBold.copyWith(color: color)),
           Text(
             helper,
             style: AppTextStyles.caption.copyWith(
@@ -893,9 +888,7 @@ class _GradesSkeleton extends StatelessWidget {
 class _SkeletonBox extends StatelessWidget {
   final double height;
 
-  const _SkeletonBox({
-    required this.height,
-  });
+  const _SkeletonBox({required this.height});
 
   @override
   Widget build(BuildContext context) {
@@ -904,9 +897,7 @@ class _SkeletonBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white.withValues(alpha: 0.75),
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: AppColors.black.withValues(alpha: 0.22),
-        ),
+        border: Border.all(color: AppColors.black.withValues(alpha: 0.22)),
       ),
     );
   }
@@ -915,9 +906,7 @@ class _SkeletonBox extends StatelessWidget {
 class _ChildAvatar extends StatelessWidget {
   final String? photoUrl;
 
-  const _ChildAvatar({
-    required this.photoUrl,
-  });
+  const _ChildAvatar({required this.photoUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -954,11 +943,7 @@ class _AvatarFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     return const ColoredBox(
       color: AppColors.primaryYellow,
-      child: Icon(
-        Icons.person_rounded,
-        color: AppColors.black,
-        size: 32,
-      ),
+      child: Icon(Icons.person_rounded, color: AppColors.black, size: 32),
     );
   }
 }

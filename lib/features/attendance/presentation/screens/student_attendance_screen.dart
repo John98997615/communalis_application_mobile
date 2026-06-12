@@ -2,6 +2,9 @@ import 'package:communalis_application_mobile/features/child_profile/domain/enti
 import 'package:communalis_application_mobile/features/child_profile/presentation/providers/child_profile_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../../app/router/route_names.dart';
+import '../../../../../shared/utils/child_display_formatter.dart';
 
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../app/theme/app_radius.dart';
@@ -127,9 +130,35 @@ class _StudentAttendanceScreenState
     return Scaffold(
       backgroundColor: AppColors.primaryYellow,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.primaryYellow,
         elevation: 0,
-        title: const Text('Présences'),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            IconButton(
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(RouteNames.parentDashboard);
+                }
+              },
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Text(
+              'Présences',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: AppColors.black,
+              ),
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -307,9 +336,7 @@ class _AttendanceHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  child.className?.trim().isNotEmpty == true
-                      ? child.className!
-                      : 'Classe non renseignée',
+                  ChildDisplayFormatter.formatClass(child.className),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.caption.copyWith(
@@ -319,9 +346,7 @@ class _AttendanceHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  child.matricule.trim().isEmpty
-                      ? 'Matricule indisponible'
-                      : 'Matricule : ${child.matricule}',
+                  ChildDisplayFormatter.formatMatricule(child.matricule),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.caption.copyWith(color: AppColors.grey),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../app/theme/app_radius.dart';
+import '../../../../../app/theme/app_spacing.dart';
+import '../../../../../app/theme/app_text_styles.dart';
 import '../../domain/entities/child_gallery_item_entity.dart';
 
 class ChildGalleryCard extends StatelessWidget {
@@ -16,71 +18,139 @@ class ChildGalleryCard extends StatelessWidget {
     required this.onTap,
   });
 
+  String get _shortMatricule {
+    final value = child.matricule.trim();
+
+    if (value.isEmpty) return 'N° indispo.';
+
+    return '#${value.replaceAll('STD', '').replaceAll('std', '').trim()}';
+  }
+
+  String get _statusLabel {
+    switch (child.liaisonStatus) {
+      case 'EN_ATTENTE':
+        return 'Demande en attente';
+      case 'APPROUVEE':
+        return 'Déjà lié à votre compte';
+      case 'REFUSEE':
+        return 'Demande refusée';
+      default:
+        return 'Disponible';
+    }
+  }
+
+  String get _childClassLabel {
+    final value = child.className?.trim();
+
+    if (value == null || value.isEmpty || value.toUpperCase() == 'NC') {
+      return 'Classe non renseignée';
+    }
+
+    return value;
+  }
+
+  Color get _statusColor {
+    switch (child.liaisonStatus) {
+      case 'EN_ATTENTE':
+        return AppColors.warning;
+      case 'APPROUVEE':
+        return AppColors.success;
+      case 'REFUSEE':
+        return AppColors.primaryRed;
+      default:
+        return AppColors.black;
+    }
+  }
+
+  IconData get _statusIcon {
+    switch (child.liaisonStatus) {
+      case 'EN_ATTENTE':
+        return Icons.hourglass_top_rounded;
+      case 'APPROUVEE':
+        return Icons.verified_rounded;
+      case 'REFUSEE':
+        return Icons.cancel_rounded;
+      default:
+        return Icons.add_rounded;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AnimatedScale(
-      duration: const Duration(milliseconds: 160),
-      scale: isSelected ? 1.02 : 1,
+    final canSelect = child.canRequestLiaison;
+
+    return Opacity(
+      opacity: canSelect ? 1 : 0.82,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(AppRadius.pill),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
           onTap: onTap,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 190),
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 7,
-            ),
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? AppColors.white
-                  : AppColors.white.withValues(alpha: 0.84),
-              borderRadius: BorderRadius.circular(AppRadius.pill),
+              color: AppColors.white.withValues(alpha: 0.86),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
               border: Border.all(
                 color: isSelected ? AppColors.primaryRed : AppColors.black,
-                width: isSelected ? 3 : 1.4,
+                width: isSelected ? 2 : 1.2,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(
-                    alpha: isSelected ? 0.13 : 0.05,
-                  ),
-                  blurRadius: isSelected ? 16 : 10,
-                  offset: const Offset(0, 5),
-                ),
-              ],
             ),
-            child: Row(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _Avatar(photoUrl: child.photoUrl),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _ChildInfo(child: child),
-                ),
-                const SizedBox(width: 4),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 160),
-                  transitionBuilder: (child, animation) {
-                    return ScaleTransition(
-                      scale: animation,
-                      child: child,
-                    );
-                  },
-                  child: isSelected
-                      ? const Icon(
-                          Icons.check_circle_rounded,
-                          key: ValueKey('selected'),
-                          color: AppColors.primaryRed,
-                          size: 24,
-                        )
-                      : const Icon(
-                          Icons.radio_button_unchecked_rounded,
-                          key: ValueKey('unselected'),
+                Row(
+                  children: [
+                    _Avatar(photoUrl: child.photoUrl),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        child.fullName.isEmpty ? 'Enfant' : child.fullName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bodyBold.copyWith(
                           color: AppColors.black,
-                          size: 24,
+                          fontSize: 13.5,
+                          height: 1.05,
                         ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    _SelectIcon(isSelected: isSelected, canSelect: canSelect),
+                  ],
+                ),
+
+                const SizedBox(height: AppSpacing.sm),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _childClassLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.darkGrey,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    _MiniPill(text: _shortMatricule, color: AppColors.black),
+                  ],
+                ),
+
+                const SizedBox(height: AppSpacing.xs),
+
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _StatusBadge(
+                    label: _statusLabel,
+                    color: _statusColor,
+                    icon: _statusIcon,
+                  ),
                 ),
               ],
             ),
@@ -91,59 +161,107 @@ class ChildGalleryCard extends StatelessWidget {
   }
 }
 
-class _ChildInfo extends StatelessWidget {
-  final ChildGalleryItemEntity child;
+class _SelectIcon extends StatelessWidget {
+  final bool isSelected;
+  final bool canSelect;
 
-  const _ChildInfo({
-    required this.child,
+  const _SelectIcon({required this.isSelected, required this.canSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        color: isSelected
+            ? AppColors.primaryRed
+            : canSelect
+            ? AppColors.primaryYellow.withValues(alpha: 0.40)
+            : AppColors.lightGrey,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.black, width: 1),
+      ),
+      child: Icon(
+        canSelect
+            ? (isSelected ? Icons.check_rounded : Icons.add_rounded)
+            : Icons.lock_outline_rounded,
+        color: isSelected ? AppColors.white : AppColors.black,
+        size: 18,
+      ),
+    );
+  }
+}
+
+class _MiniPill extends StatelessWidget {
+  final String text;
+  final Color color;
+
+  const _MiniPill({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 70),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTextStyles.caption.copyWith(
+          color: color,
+          fontWeight: FontWeight.w900,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+  final IconData icon;
+
+  const _StatusBadge({
+    required this.label,
+    required this.color,
+    required this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
-    final matricule = child.matricule.trim().isEmpty
-        ? 'N° indisponible'
-        : 'N°:${child.matricule}';
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          child.fullName,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: AppColors.black,
-            fontSize: 12.5,
-            height: 1.05,
-            fontWeight: FontWeight.w900,
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 135),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 3),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.caption.copyWith(
+                color: color,
+                fontWeight: FontWeight.w900,
+                fontSize: 10,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          child.className?.trim().isNotEmpty == true
-              ? child.className!
-              : 'Classe NC',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: AppColors.darkGrey,
-            fontSize: 10.5,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          matricule,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: AppColors.darkGrey,
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -151,9 +269,7 @@ class _ChildInfo extends StatelessWidget {
 class _Avatar extends StatelessWidget {
   final String? photoUrl;
 
-  const _Avatar({
-    this.photoUrl,
-  });
+  const _Avatar({this.photoUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -162,14 +278,11 @@ class _Avatar extends StatelessWidget {
     return Container(
       width: 46,
       height: 46,
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(2.5),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.white,
-        border: Border.all(
-          color: AppColors.black,
-          width: 1.3,
-        ),
+        border: Border.all(color: AppColors.black, width: 1.2),
       ),
       child: ClipOval(
         child: hasPhoto
@@ -177,23 +290,23 @@ class _Avatar extends StatelessWidget {
                 photoUrl!,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return const ColoredBox(
-                    color: AppColors.primaryYellow,
-                    child: Icon(
-                      Icons.person_rounded,
-                      color: AppColors.black,
-                    ),
-                  );
+                  return const _AvatarFallback();
                 },
               )
-            : const ColoredBox(
-                color: AppColors.primaryYellow,
-                child: Icon(
-                  Icons.person_rounded,
-                  color: AppColors.black,
-                ),
-              ),
+            : const _AvatarFallback(),
       ),
+    );
+  }
+}
+
+class _AvatarFallback extends StatelessWidget {
+  const _AvatarFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      color: AppColors.primaryYellow,
+      child: Icon(Icons.person_rounded, color: AppColors.black, size: 26),
     );
   }
 }

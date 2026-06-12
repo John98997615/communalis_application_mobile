@@ -9,19 +9,30 @@ import '../../domain/entities/child_profile_entity.dart';
 class ChildOverviewCard extends StatelessWidget {
   final ChildProfileEntity child;
 
-  const ChildOverviewCard({
-    super.key,
-    required this.child,
-  });
+  const ChildOverviewCard({super.key, required this.child});
 
-  String get _classText {
+  String get _classLabel {
     final value = child.className?.trim();
-    return value == null || value.isEmpty ? 'Classe non renseignée' : value;
+
+    if (value == null || value.isEmpty || value.toUpperCase() == 'NC') {
+      return 'Classe non renseignée';
+    }
+
+    return value;
   }
 
-  String get _matriculeText {
+  String get _matriculeLabel {
     final value = child.matricule.trim();
-    return value.isEmpty ? 'Matricule indisponible' : 'N° $value';
+
+    if (value.isEmpty) {
+      return 'Matricule indisponible';
+    }
+
+    final cleanValue = value
+        .replaceFirst(RegExp(r'^STD', caseSensitive: false), '')
+        .trim();
+
+    return 'N° #$cleanValue';
   }
 
   String get _ageText {
@@ -94,10 +105,7 @@ class ChildOverviewCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(AppRadius.xl),
-          border: Border.all(
-            color: AppColors.black,
-            width: 1.2,
-          ),
+          border: Border.all(color: AppColors.black, width: 1.2),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.06),
@@ -130,20 +138,22 @@ class ChildOverviewCard extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        _classText,
+                        _classLabel,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bodyBold.copyWith(
+                        style: AppTextStyles.caption.copyWith(
                           color: AppColors.darkGrey,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        _matriculeText,
+                        _matriculeLabel,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.grey,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ],
@@ -157,10 +167,7 @@ class ChildOverviewCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _InfoPill(
-                    icon: Icons.cake_outlined,
-                    label: _ageText,
-                  ),
+                  child: _InfoPill(icon: Icons.cake_outlined, label: _ageText),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
@@ -181,9 +188,7 @@ class ChildOverviewCard extends StatelessWidget {
 class _ChildAvatar extends StatelessWidget {
   final String? photoUrl;
 
-  const _ChildAvatar({
-    required this.photoUrl,
-  });
+  const _ChildAvatar({required this.photoUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -196,10 +201,7 @@ class _ChildAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.white,
-        border: Border.all(
-          color: AppColors.black,
-          width: 1.4,
-        ),
+        border: Border.all(color: AppColors.black, width: 1.4),
       ),
       child: ClipOval(
         child: hasPhoto
@@ -223,11 +225,7 @@ class _AvatarFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     return const ColoredBox(
       color: AppColors.primaryYellow,
-      child: Icon(
-        Icons.person_rounded,
-        color: AppColors.black,
-        size: 38,
-      ),
+      child: Icon(Icons.person_rounded, color: AppColors.black, size: 38),
     );
   }
 }
@@ -236,10 +234,7 @@ class _InfoPill extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _InfoPill({
-    required this.icon,
-    required this.label,
-  });
+  const _InfoPill({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -251,19 +246,12 @@ class _InfoPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.primaryYellow.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(AppRadius.pill),
-        border: Border.all(
-          color: AppColors.black,
-          width: 1.1,
-        ),
+        border: Border.all(color: AppColors.black, width: 1.1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: AppColors.black,
-            size: 16,
-          ),
+          Icon(icon, color: AppColors.black, size: 16),
           const SizedBox(width: AppSpacing.xs),
           Flexible(
             child: Text(
@@ -286,10 +274,7 @@ class _PerformancePill extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _PerformancePill({
-    required this.label,
-    required this.color,
-  });
+  const _PerformancePill({required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -301,10 +286,7 @@ class _PerformancePill extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.pill),
-        border: Border.all(
-          color: color,
-          width: 1.1,
-        ),
+        border: Border.all(color: color, width: 1.1),
       ),
       child: Text(
         label,

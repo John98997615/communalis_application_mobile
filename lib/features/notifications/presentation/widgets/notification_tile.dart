@@ -4,6 +4,7 @@ import '../../../../../app/theme/app_colors.dart';
 import '../../../../../app/theme/app_radius.dart';
 import '../../../../../app/theme/app_spacing.dart';
 import '../../../../../app/theme/app_text_styles.dart';
+import '../../../../../shared/utils/date_formatter.dart';
 import '../../domain/entities/notification_entity.dart';
 
 class NotificationTile extends StatelessWidget {
@@ -52,9 +53,27 @@ class NotificationTile extends StatelessWidget {
     }
   }
 
+  String get _cleanContent {
+    final content = notification.content.trim();
+
+    if (content.isEmpty) {
+      return 'Notification indisponible.';
+    }
+
+    return content
+        .replaceAll(' aujourd’hui.', '.')
+        .replaceAll(' aujourd’hui', '')
+        .replaceAll(" aujourd'hui.", '.')
+        .replaceAll(" aujourd'hui", '')
+        .trim();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isUnread = !notification.isRead;
+    final formattedDate = DateFormatter.formatNotificationDate(
+      notification.createdAt,
+    );
 
     return Material(
       color: Colors.transparent,
@@ -70,7 +89,9 @@ class NotificationTile extends StatelessWidget {
                 : AppColors.white.withValues(alpha: 0.72),
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
-              color: isUnread ? AppColors.black : AppColors.black.withValues(alpha: 0.45),
+              color: isUnread
+                  ? AppColors.black
+                  : AppColors.black.withValues(alpha: 0.45),
               width: isUnread ? 1.25 : 1,
             ),
             boxShadow: [
@@ -136,9 +157,7 @@ class NotificationTile extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xs),
 
                     Text(
-                      notification.content.trim().isEmpty
-                          ? 'Notification indisponible.'
-                          : notification.content,
+                      _cleanContent,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.caption.copyWith(
@@ -149,27 +168,27 @@ class NotificationTile extends StatelessWidget {
 
                     const SizedBox(height: AppSpacing.sm),
 
-                    Row(
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.xs,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Icon(
-                          isUnread
+                        _MetaBadge(
+                          icon: isUnread
                               ? Icons.mark_email_unread_outlined
                               : Icons.done_all_rounded,
-                          size: 15,
+                          text: isUnread ? 'Non lue' : 'Lue',
                           color: isUnread
                               ? AppColors.primaryRed
                               : AppColors.success,
                         ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          isUnread ? 'Non lue' : 'Lue',
-                          style: AppTextStyles.caption.copyWith(
-                            color: isUnread
-                                ? AppColors.primaryRed
-                                : AppColors.success,
-                            fontWeight: FontWeight.w800,
+
+                        if (formattedDate.isNotEmpty)
+                          _MetaBadge(
+                            icon: Icons.schedule_rounded,
+                            text: formattedDate,
+                            color: AppColors.darkGrey,
                           ),
-                        ),
                       ],
                     ),
                   ],
@@ -179,6 +198,40 @@ class NotificationTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _MetaBadge extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color color;
+
+  const _MetaBadge({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 15,
+          color: color,
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Text(
+          text,
+          style: AppTextStyles.caption.copyWith(
+            color: color,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
     );
   }
 }

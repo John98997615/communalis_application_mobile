@@ -6,6 +6,8 @@ class ChildGalleryItemEntity {
   final String? className;
   final String? level;
   final String? photoUrl;
+  final String liaisonStatus;
+  final bool canRequestLiaison;
 
   const ChildGalleryItemEntity({
     required this.id,
@@ -15,10 +17,14 @@ class ChildGalleryItemEntity {
     this.className,
     this.level,
     this.photoUrl,
+    this.liaisonStatus = 'NONE',
+    this.canRequestLiaison = true,
   });
 
-  String get fullName {
-    final name = '$firstName $lastName'.trim();
-    return name.isEmpty ? 'Élève sans nom' : name;
-  }
+  String get fullName => '$firstName $lastName'.trim();
+
+  bool get isPending => liaisonStatus == 'EN_ATTENTE';
+  bool get isApproved => liaisonStatus == 'APPROUVEE';
+  bool get isRejected => liaisonStatus == 'REFUSEE';
+  bool get isAvailable => liaisonStatus == 'NONE';
 }

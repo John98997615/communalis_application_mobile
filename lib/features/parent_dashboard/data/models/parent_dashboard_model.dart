@@ -7,6 +7,7 @@ class ParentDashboardModel {
   final int totalChildren;
   final int pendingAssociationCount;
   final List<ParentChildSummaryModel> children;
+  final String? parentPhotoUrl;
 
   const ParentDashboardModel({
     required this.parentId,
@@ -14,6 +15,7 @@ class ParentDashboardModel {
     required this.totalChildren,
     required this.children,
     required this.pendingAssociationCount,
+    this.parentPhotoUrl,
   });
 
   factory ParentDashboardModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,7 @@ class ParentDashboardModel {
                 .map(ParentChildSummaryModel.fromJson)
                 .toList()
           : [],
+      parentPhotoUrl: data['parentPhotoUrl']?.toString(),
     );
   }
 
@@ -47,6 +50,7 @@ class ParentDashboardModel {
       totalChildren: totalChildren,
       children: children.map((child) => child.toEntity()).toList(),
       pendingAssociationCount: pendingAssociationCount,
+      parentPhotoUrl: parentPhotoUrl,
     );
   }
 }

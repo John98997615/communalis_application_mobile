@@ -8,12 +8,14 @@ class ParentDashboardHeader extends StatefulWidget {
   final String parentName;
   final VoidCallback? onBack;
   final VoidCallback? onProfileTap;
+  final String? parentPhotoUrl;
 
   const ParentDashboardHeader({
     super.key,
     required this.parentName,
     this.onBack,
     this.onProfileTap,
+    this.parentPhotoUrl,
   });
 
   @override
@@ -43,9 +45,7 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, -0.08),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _controller.forward();
   }
@@ -89,23 +89,35 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader>
 
                   const SizedBox(width: AppSpacing.xs),
 
-                  GestureDetector(
-                    onTap: widget.onProfileTap,
-                    child: Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryYellow,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.black,
-                          width: 1.4,
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: widget.onProfileTap,
+                      child: Container(
+                        width: 58,
+                        height: 58,
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.black,
+                            width: 1.6,
+                          ),
                         ),
-                      ),
-                      child: const Icon(
-                        Icons.person_outline_rounded,
-                        color: AppColors.black,
-                        size: 28,
+                        child: ClipOval(
+                          child:
+                              widget.parentPhotoUrl != null &&
+                                  widget.parentPhotoUrl!.trim().isNotEmpty
+                              ? Image.network(
+                                  widget.parentPhotoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const _ParentAvatarFallback();
+                                  },
+                                )
+                              : const _ParentAvatarFallback(),
+                        ),
                       ),
                     ),
                   ),
@@ -168,6 +180,22 @@ class _ParentDashboardHeaderState extends State<ParentDashboardHeader>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ParentAvatarFallback extends StatelessWidget {
+  const _ParentAvatarFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      color: AppColors.primaryYellow,
+      child: Icon(
+        Icons.person_outline_rounded,
+        color: AppColors.black,
+        size: 34,
       ),
     );
   }

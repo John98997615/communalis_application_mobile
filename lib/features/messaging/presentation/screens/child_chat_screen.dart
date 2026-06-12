@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../../app/router/route_names.dart';
 
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../app/theme/app_radius.dart';
@@ -40,8 +42,10 @@ class _ChildChatScreenState extends ConsumerState<ChildChatScreen> {
       await notifier.loadMessages();
       notifier.startAutoRefresh();
 
-      _lastKnownMessageCount =
-          ref.read(childChatProvider(widget.childId)).messages.length;
+      _lastKnownMessageCount = ref
+          .read(childChatProvider(widget.childId))
+          .messages
+          .length;
 
       _scrollToBottom();
     });
@@ -63,7 +67,9 @@ class _ChildChatScreenState extends ConsumerState<ChildChatScreen> {
 
     _messageController.clear();
 
-    await ref.read(childChatProvider(widget.childId).notifier).sendMessage(text);
+    await ref
+        .read(childChatProvider(widget.childId).notifier)
+        .sendMessage(text);
 
     _scrollToBottom();
   }
@@ -112,10 +118,35 @@ class _ChildChatScreenState extends ConsumerState<ChildChatScreen> {
     return Scaffold(
       backgroundColor: AppColors.primaryYellow,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.primaryYellow,
         elevation: 0,
-        title: const Text('Messagerie'),
-        centerTitle: false,
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            IconButton(
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(RouteNames.parentDashboard);
+                }
+              },
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Text(
+              'Discussion avec l’administration',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: AppColors.black,
+              ),
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: Column(
@@ -215,18 +246,11 @@ class _ChatStateCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(
-              color: AppColors.black,
-              width: 1.2,
-            ),
+            border: Border.all(color: AppColors.black, width: 1.2),
           ),
           child: Column(
             children: [
-              Icon(
-                icon,
-                color: AppColors.primaryRed,
-                size: 52,
-              ),
+              Icon(icon, color: AppColors.primaryRed, size: 52),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 title,
@@ -299,9 +323,7 @@ class _ChatSkeleton extends StatelessWidget {
 class _SkeletonBubble extends StatelessWidget {
   final bool isMe;
 
-  const _SkeletonBubble({
-    required this.isMe,
-  });
+  const _SkeletonBubble({required this.isMe});
 
   @override
   Widget build(BuildContext context) {
@@ -314,9 +336,7 @@ class _SkeletonBubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.white.withValues(alpha: 0.70),
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(
-            color: AppColors.black.withValues(alpha: 0.18),
-          ),
+          border: Border.all(color: AppColors.black.withValues(alpha: 0.18)),
         ),
       ),
     );
