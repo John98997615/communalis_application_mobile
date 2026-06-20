@@ -66,14 +66,17 @@ class _ActionTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.black, width: 1.1),
       ),
-      child: ListTile(
-        onTap: onTap,
-        leading: Icon(icon, color: color),
-        title: Text(
-          title,
-          style: AppTextStyles.bodyBold.copyWith(color: color),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: ListTile(
+          onTap: onTap,
+          leading: Icon(icon, color: color),
+          title: Text(
+            title,
+            style: AppTextStyles.bodyBold.copyWith(color: color),
+          ),
+          trailing: const Icon(Icons.chevron_right_rounded),
         ),
-        trailing: const Icon(Icons.chevron_right_rounded),
       ),
     );
   }

@@ -33,6 +33,7 @@ class AuthState {
     String? successMessage,
     bool clearMessages = false,
     bool clearOtp = false,
+    bool clearSession = false,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
@@ -41,7 +42,7 @@ class AuthState {
       pendingOtpEmail: clearOtp
           ? null
           : pendingOtpEmail ?? this.pendingOtpEmail,
-      session: session ?? this.session,
+      session: clearSession ? null : session ?? this.session,
       role: role ?? this.role,
       errorMessage: clearMessages ? null : errorMessage,
       successMessage: clearMessages ? null : successMessage,

@@ -155,7 +155,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.go(RouteNames.forgotPassword);
+                    },
                     child: Text(
                       'Mot de passe oublié?',
                       style: AppTextStyles.body.copyWith(
@@ -182,10 +184,70 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 _GoogleButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Connexion Google à brancher plus tard.'),
-                      ),
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 72,
+                                  height: 72,
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.construction_rounded,
+                                    size: 40,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                const Text(
+                                  'Connexion Google bientôt disponible',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                const Text(
+                                  'Veuillez utiliser votre compte Communalis avec votre adresse email et votre mot de passe pour le moment.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    height: 1.4,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 24),
+
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Compris'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

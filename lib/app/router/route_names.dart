@@ -5,6 +5,8 @@ class RouteNames {
   static const login = '/login';
   static const registerParent = '/register-parent';
   static const otp = '/otp';
+  static const forgotPassword = '/forgot-password';
+  static const resetPassword = '/reset-password';
   static const roleRedirect = '/role-redirect';
   static const homeChoice = '/home';
 
@@ -47,5 +49,7 @@ class RouteNames {
   static const messaging = '/messaging';
   static const notifications = '/notifications';
   static const profile = '/profile';
+  static const editProfile = '/profile/edit';
+  static const securityAccount = '/profile/security';
   static const settings = '/settings';
 }

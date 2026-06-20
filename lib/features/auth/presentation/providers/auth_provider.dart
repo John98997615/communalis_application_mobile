@@ -16,15 +16,11 @@ import '../../domain/usecases/verify_otp_usecase.dart';
 import 'auth_state.dart';
 
 final authRemoteDatasourceProvider = Provider<AuthRemoteDatasource>((ref) {
-  return AuthRemoteDatasource(
-    apiClient: ApiClient.instance,
-  );
+  return AuthRemoteDatasource(apiClient: ApiClient.instance);
 });
 
 final authLocalDatasourceProvider = Provider<AuthLocalDatasource>((ref) {
-  return AuthLocalDatasource(
-    secureStorage: SecureStorageService.instance,
-  );
+  return AuthLocalDatasource(secureStorage: SecureStorageService.instance);
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -35,37 +31,26 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 final registerParentUsecaseProvider = Provider<RegisterParentUsecase>((ref) {
-  return RegisterParentUsecase(
-    ref.watch(authRepositoryProvider),
-  );
+  return RegisterParentUsecase(ref.watch(authRepositoryProvider));
 });
 
 final loginUsecaseProvider = Provider<LoginUsecase>((ref) {
-  return LoginUsecase(
-    ref.watch(authRepositoryProvider),
-  );
+  return LoginUsecase(ref.watch(authRepositoryProvider));
 });
 
 final verifyOtpUsecaseProvider = Provider<VerifyOtpUsecase>((ref) {
-  return VerifyOtpUsecase(
-    ref.watch(authRepositoryProvider),
-  );
+  return VerifyOtpUsecase(ref.watch(authRepositoryProvider));
 });
 
 final restoreSessionUsecaseProvider = Provider<RestoreSessionUsecase>((ref) {
-  return RestoreSessionUsecase(
-    ref.watch(authRepositoryProvider),
-  );
+  return RestoreSessionUsecase(ref.watch(authRepositoryProvider));
 });
 
 final logoutUsecaseProvider = Provider<LogoutUsecase>((ref) {
-  return LogoutUsecase(
-    ref.watch(authRepositoryProvider),
-  );
+  return LogoutUsecase(ref.watch(authRepositoryProvider));
 });
 
-final authProvider =
-    StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(
     registerParentUsecase: ref.watch(registerParentUsecaseProvider),
     loginUsecase: ref.watch(loginUsecaseProvider),
@@ -98,10 +83,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String password,
     String? photoPath,
   }) async {
-    state = state.copyWith(
-      isLoading: true,
-      clearMessages: true,
-    );
+    state = state.copyWith(isLoading: true, clearMessages: true);
 
     try {
       final message = await registerParentUsecase(
@@ -113,22 +95,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
         photoPath: photoPath,
       );
 
-      state = state.copyWith(
-        isLoading: false,
-        successMessage: message,
-      );
+      state = state.copyWith(isLoading: false, successMessage: message);
     } catch (error) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: error.toString(),
-      );
+      state = state.copyWith(isLoading: false, errorMessage: error.toString());
     }
   }
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> login({required String email, required String password}) async {
     state = state.copyWith(
       isLoading: true,
       clearMessages: true,
@@ -136,10 +109,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
 
     try {
-      final session = await loginUsecase(
-        email: email,
-        password: password,
-      );
+      final session = await loginUsecase(email: email, password: password);
 
       if (session == null) {
         state = state.copyWith(
@@ -170,20 +140,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> verifyOtp({
-    required String email,
-    required String otp,
-  }) async {
-    state = state.copyWith(
-      isLoading: true,
-      clearMessages: true,
-    );
+  Future<void> verifyOtp({required String email, required String otp}) async {
+    state = state.copyWith(isLoading: true, clearMessages: true);
 
     try {
-      final session = await verifyOtpUsecase(
-        email: email,
-        otp: otp,
-      );
+      final session = await verifyOtpUsecase(email: email, otp: otp);
 
       state = state.copyWith(
         isLoading: false,
@@ -195,18 +156,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         successMessage: 'Vérification réussie.',
       );
     } catch (error) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: error.toString(),
-      );
+      state = state.copyWith(isLoading: false, errorMessage: error.toString());
     }
   }
 
   Future<void> restoreSession() async {
-    state = state.copyWith(
-      isLoading: true,
-      clearMessages: true,
-    );
+    state = state.copyWith(isLoading: true, clearMessages: true);
 
     try {
       final hasSession = await restoreSessionUsecase.hasActiveSession();
@@ -227,11 +182,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, clearMessages: true);
 
-    await logoutUsecase();
+    try {
+      await logoutUsecase();
+    } catch (_) {
+      // Même si l'API logout échoue, on nettoie la session locale.
+    }
 
-    state = const AuthState();
+    await SecureStorageService.instance.clearAll();
+
+    state = const AuthState(
+      isAuthenticated: false,
+      requiresOtp: false,
+      pendingOtpEmail: null,
+      session: null,
+      role: UserRole.unknown,
+    );
   }
 
   void clearMessages() {

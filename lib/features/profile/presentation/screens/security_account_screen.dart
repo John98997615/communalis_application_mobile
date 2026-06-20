@@ -9,65 +9,40 @@ import '../../../../../app/theme/app_spacing.dart';
 import '../../../../../app/theme/app_text_styles.dart';
 import '../providers/profile_provider.dart';
 
-class EditProfileScreen extends ConsumerStatefulWidget {
-  const EditProfileScreen({super.key});
+class SecurityAccountScreen extends ConsumerStatefulWidget {
+  const SecurityAccountScreen({super.key});
 
   @override
-  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<SecurityAccountScreen> createState() =>
+      _SecurityAccountScreenState();
 }
 
-class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+class _SecurityAccountScreenState extends ConsumerState<SecurityAccountScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  late final TextEditingController _firstNameController;
-  late final TextEditingController _lastNameController;
-  late final TextEditingController _phoneController;
-  late final TextEditingController _photoUrlController;
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-
-    _firstNameController = TextEditingController();
-    _lastNameController = TextEditingController();
-    _phoneController = TextEditingController();
-    _photoUrlController = TextEditingController();
-
-    Future.microtask(() async {
-      if (!mounted) return;
-
-      await ref.read(profileProvider.notifier).loadProfile();
-
-      if (!mounted) return;
-
-      final profile = ref.read(profileProvider).profile;
-
-      _firstNameController.text = profile?['firstName']?.toString() ?? '';
-      _lastNameController.text = profile?['lastName']?.toString() ?? '';
-      _phoneController.text = profile?['phone']?.toString() ?? '';
-      _photoUrlController.text = profile?['photoUrl']?.toString() ?? '';
-    });
-  }
+  bool _hideCurrentPassword = true;
+  bool _hideNewPassword = true;
+  bool _hideConfirmPassword = true;
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _phoneController.dispose();
-    _photoUrlController.dispose();
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await ref
-        .read(profileProvider.notifier)
-        .updateProfile(
-          firstName: _firstNameController.text,
-          lastName: _lastNameController.text,
-          phone: _phoneController.text,
-          photoUrl: _photoUrlController.text,
+    final success = await ref.read(profileProvider.notifier).changePassword(
+          currentPassword: _currentPasswordController.text,
+          newPassword: _newPasswordController.text,
+          confirmPassword: _confirmPasswordController.text,
         );
 
     if (!mounted) return;
@@ -76,15 +51,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       SnackBar(
         content: Text(
           success
-              ? 'Profil mis à jour avec succès.'
+              ? 'Mot de passe modifié avec succès.'
               : ref.read(profileProvider).errorMessage ??
-                    'Impossible de mettre à jour le profil.',
+                  'Impossible de modifier le mot de passe.',
         ),
         backgroundColor: success ? AppColors.success : AppColors.primaryRed,
       ),
     );
 
     if (success) {
+      _currentPasswordController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
       context.go(RouteNames.profile);
     }
   }
@@ -92,9 +70,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(profileProvider);
-    final profile = ref.watch(profileProvider).profile;
-
-    final email = profile?['email']?.toString() ?? '';
 
     return Scaffold(
       backgroundColor: AppColors.primaryYellow,
@@ -119,7 +94,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               ),
             ),
             const Text(
-              'Modifier mon profil',
+              'Sécurité du compte',
               style: TextStyle(
                 color: AppColors.black,
                 fontWeight: FontWeight.w900,
@@ -144,51 +119,87 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 child: Column(
                   children: [
                     const Icon(
-                      Icons.manage_accounts_outlined,
+                      Icons.lock_outline_rounded,
                       color: AppColors.primaryRed,
                       size: 54,
                     ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'Modifier votre mot de passe',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.titleSmall.copyWith(
+                        color: AppColors.black,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      'Utilisez un mot de passe fort pour protéger votre compte parent.',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.darkGrey,
+                        height: 1.35,
+                      ),
+                    ),
                     const SizedBox(height: AppSpacing.lg),
 
-                    _Field(
-                      controller: _firstNameController,
-                      label: 'Prénom',
-                      icon: Icons.person_outline,
+                    _PasswordField(
+                      controller: _currentPasswordController,
+                      label: 'Ancien mot de passe',
+                      obscureText: _hideCurrentPassword,
+                      onToggleVisibility: () {
+                        setState(() {
+                          _hideCurrentPassword = !_hideCurrentPassword;
+                        });
+                      },
                       validator: (value) =>
                           value == null || value.trim().isEmpty
-                          ? 'Le prénom est obligatoire.'
-                          : null,
+                              ? 'L’ancien mot de passe est obligatoire.'
+                              : null,
                     ),
 
-                    _Field(
-                      controller: _lastNameController,
-                      label: 'Nom',
-                      icon: Icons.badge_outlined,
-                      validator: (value) =>
-                          value == null || value.trim().isEmpty
-                          ? 'Le nom est obligatoire.'
-                          : null,
+                    _PasswordField(
+                      controller: _newPasswordController,
+                      label: 'Nouveau mot de passe',
+                      obscureText: _hideNewPassword,
+                      onToggleVisibility: () {
+                        setState(() {
+                          _hideNewPassword = !_hideNewPassword;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Le nouveau mot de passe est obligatoire.';
+                        }
+
+                        if (value.trim().length < 8) {
+                          return 'Minimum 8 caractères.';
+                        }
+
+                        return null;
+                      },
                     ),
 
-                    _Field(
-                      initialValue: email,
-                      label: 'Email',
-                      icon: Icons.email_outlined,
-                      enabled: false,
-                    ),
+                    _PasswordField(
+                      controller: _confirmPasswordController,
+                      label: 'Confirmer le mot de passe',
+                      obscureText: _hideConfirmPassword,
+                      onToggleVisibility: () {
+                        setState(() {
+                          _hideConfirmPassword = !_hideConfirmPassword;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Veuillez confirmer le mot de passe.';
+                        }
 
-                    _Field(
-                      controller: _phoneController,
-                      label: 'Téléphone',
-                      icon: Icons.phone_outlined,
-                      keyboardType: TextInputType.phone,
-                    ),
+                        if (value.trim() !=
+                            _newPasswordController.text.trim()) {
+                          return 'Les mots de passe ne correspondent pas.';
+                        }
 
-                    _Field(
-                      controller: _photoUrlController,
-                      label: 'Lien photo de profil',
-                      icon: Icons.image_outlined,
-                      keyboardType: TextInputType.url,
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: AppSpacing.lg),
@@ -207,11 +218,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                   color: AppColors.white,
                                 ),
                               )
-                            : const Icon(Icons.save_outlined),
+                            : const Icon(Icons.verified_user_outlined),
                         label: Text(
                           state.isSaving
-                              ? 'Enregistrement...'
-                              : 'Enregistrer les modifications',
+                              ? 'Modification...'
+                              : 'Modifier le mot de passe',
                           style: AppTextStyles.bodyBold.copyWith(
                             color: AppColors.white,
                           ),
@@ -241,22 +252,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 }
 
-class _Field extends StatelessWidget {
-  final TextEditingController? controller;
-  final String? initialValue;
+class _PasswordField extends StatelessWidget {
+  final TextEditingController controller;
   final String label;
-  final IconData icon;
-  final bool enabled;
-  final TextInputType? keyboardType;
+  final bool obscureText;
+  final VoidCallback onToggleVisibility;
   final String? Function(String?)? validator;
 
-  const _Field({
-    this.controller,
-    this.initialValue,
+  const _PasswordField({
+    required this.controller,
     required this.label,
-    required this.icon,
-    this.enabled = true,
-    this.keyboardType,
+    required this.obscureText,
+    required this.onToggleVisibility,
     this.validator,
   });
 
@@ -266,17 +273,25 @@ class _Field extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: TextFormField(
         controller: controller,
-        initialValue: controller == null ? initialValue : null,
-        enabled: enabled,
-        keyboardType: keyboardType,
+        obscureText: obscureText,
         validator: validator,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: AppColors.primaryRed),
+          prefixIcon: const Icon(
+            Icons.lock_outline_rounded,
+            color: AppColors.primaryRed,
+          ),
+          suffixIcon: IconButton(
+            onPressed: onToggleVisibility,
+            icon: Icon(
+              obscureText
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: AppColors.darkGrey,
+            ),
+          ),
           filled: true,
-          fillColor: enabled
-              ? AppColors.primaryYellow.withValues(alpha: 0.12)
-              : AppColors.lightGrey,
+          fillColor: AppColors.primaryYellow.withValues(alpha: 0.12),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg),
             borderSide: const BorderSide(color: AppColors.black),

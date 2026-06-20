@@ -69,18 +69,6 @@ class _HomeChoiceScreenState extends ConsumerState<HomeChoiceScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(28, 18, 28, 28),
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                onPressed: () => context.go(RouteNames.login),
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.black,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 18),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),

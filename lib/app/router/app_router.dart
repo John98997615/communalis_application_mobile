@@ -1,7 +1,14 @@
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/screens/reset_password_screen.dart';
+
+import '../../features/profile/presentation/screens/security_account_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
@@ -23,6 +30,36 @@ import 'route_names.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: RouteNames.splash,
+    refreshListenable: GoRouterRefreshStream(
+      ref.watch(authProvider.notifier).stream,
+    ),
+    redirect: (context, state) {
+      final authState = ref.read(authProvider);
+      final location = state.uri.toString();
+
+      final publicRoutes = <String>{
+        RouteNames.splash,
+        RouteNames.login,
+        RouteNames.registerParent,
+        RouteNames.otp,
+        RouteNames.forgotPassword,
+        RouteNames.resetPassword,
+      };
+
+      final isPublicRoute = publicRoutes.any(
+        (route) => location == route || location.startsWith('$route?'),
+      );
+
+      if (!authState.isAuthenticated && !isPublicRoute) {
+        return RouteNames.login;
+      }
+
+      if (authState.isAuthenticated && location == RouteNames.login) {
+        return RouteNames.homeChoice;
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: RouteNames.splash,
@@ -39,6 +76,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.otp,
         builder: (context, state) => const OtpScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.forgotPassword,
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.resetPassword,
+        builder: (context, state) {
+          final email = state.uri.queryParameters['email'] ?? '';
+
+          return ResetPasswordScreen(email: email);
+        },
       ),
       GoRoute(
         path: RouteNames.roleRedirect,
@@ -82,6 +131,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.profile,
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.editProfile,
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.securityAccount,
+        builder: (context, state) => const SecurityAccountScreen(),
       ),
       GoRoute(
         path: RouteNames.childChat,
@@ -130,5 +187,20 @@ class _TempScreen extends StatelessWidget {
       appBar: AppBar(title: Text(title)),
       body: Center(child: Text(message, style: const TextStyle(fontSize: 22))),
     );
+  }
+}
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 }
